@@ -1,0 +1,14 @@
+
+
+services:
+  ecommercedb:
+    container_name: ecommercedb
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ECommerceDB
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_ecommercedb:/var/lib/postgresql

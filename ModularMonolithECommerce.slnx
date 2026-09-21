@@ -1,0 +1,29 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Directory.Packages.props" />
+    <File Path="docs/ADDING-NEW-AGGREGATE.md" />
+    <File Path="docs/ADDING-NEW-MODULE.md" />
+    <File Path="docs/yeni-modul-ve-aggregate-rehberi.md" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/BuildingBlocks.Shared/BuildingBlocks.Shared.csproj" Id="06fdb944-3912-4d60-8982-d5598299b72f" />
+  </Folder>
+  <Folder Name="/src/Host/">
+    <Project Path="src/Host/Api/Api.csproj" Id="07ad391f-b556-412c-b4a1-554d8cb2e7cb" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Basket/" />
+  <Folder Name="/src/Modules/Catalog/">
+    <Project Path="src/Modules/Catalog/Catalog.Api/Catalog.Api.csproj" Id="fe203a67-873c-4622-a5db-b669a29de3c5" />
+    <Project Path="src/Modules/Catalog/Catalog.Application/Catalog.Application.csproj" Id="acabc15b-3682-47c1-817c-d843a74650ac" />
+    <Project Path="src/Modules/Catalog/Catalog.Contracts/Catalog.Contracts.csproj" Id="57693d08-2c52-435b-82fc-553848703d26" />
+    <Project Path="src/Modules/Catalog/Catalog.Domain/Catalog.Domain.csproj" Id="fe791eb5-9294-4fc7-b317-92b5a69fb41c" />
+    <Project Path="src/Modules/Catalog/Catalog.Infrastructure/Catalog.Infrastructure.csproj" Id="33a26dd3-3d64-4f72-97f7-3eb216ac8855" />
+  </Folder>
+  <Folder Name="/src/Modules/Ordering/" />
+  <Project Path="docker-compose.dcproj">
+    <Build />
+  </Project>
+</Solution>
+
