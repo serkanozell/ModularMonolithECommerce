@@ -3,5 +3,8 @@ services:
   ecommercedb:
     image: postgres
 
+  seq:
+    image: datalust/seq:latest
+
 volumes:
   postgres_ecommercedb:

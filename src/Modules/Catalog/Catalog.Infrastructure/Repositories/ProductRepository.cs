@@ -22,17 +22,24 @@ namespace Catalog.Infrastructure.Repositories
             await ActiveProducts()
                   .AsNoTracking()
                   .OrderByDescending(p => p.CreatedAt)
-                  .Skip((pageNumber - 1) * pageSize)
+                  .Skip((pageNumber) * pageSize)
                   .Take(pageSize)
                   .ToListAsync(cancellationToken);
 
-        public Task<int> CountAsync(CancellationToken cancellationToken = default) =>
-            ActiveProducts().CountAsync(cancellationToken);
+        public Task<long> CountAsync(CancellationToken cancellationToken = default) =>
+            ActiveProducts().LongCountAsync(cancellationToken);
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
             context.SaveChangesAsync(cancellationToken);
 
         private IQueryable<Product> ActiveProducts() =>
             context.Products.Where(p => !p.IsDeleted && p.IsActive);
+
+        public async Task<IReadOnlyList<Product>> GetByCategoryAsync(string category, CancellationToken cancellationToken = default) =>
+            await ActiveProducts()
+                .AsNoTracking()
+                .Where(p => p.Category.Contains(category))
+                .OrderBy(p => p.Name)
+                .ToListAsync(cancellationToken);
     }
 }

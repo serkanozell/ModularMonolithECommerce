@@ -10,8 +10,5 @@
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
-    <None Include="docs\yeni-modul-ve-aggregate-rehberi.md" />
-    <None Include="tests\Postman\Catalog.local.postman_environment.json" />
-    <None Include="tests\Postman\Catalog.postman_collection.json" />
   </ItemGroup>
 </Project>

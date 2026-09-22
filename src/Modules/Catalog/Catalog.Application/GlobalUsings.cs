@@ -1,4 +1,5 @@
 ﻿global using BuildingBlocks.Shared.CQRS;
+global using BuildingBlocks.Shared.Pagination;
 global using Carter;
 global using Catalog.Domain.Entities;
 global using Catalog.Domain.Repositories;

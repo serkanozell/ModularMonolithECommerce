@@ -1,11 +1,8 @@
 namespace Catalog.Application.Features.Products.GetProducts
 {
-    public record GetProductsQuery(int PageNumber, int PageSize) : IQuery<GetProductsResult>;
+    public record GetProductsQuery(PaginationRequest PaginationRequest) : IQuery<GetProductsResult>;
 
-    public record GetProductsResult(int PageNumber,
-                                    int PageSize,
-                                    int TotalCount,
-                                    List<ProductDto> Products);
+    public record GetProductsResult(PaginatedResult<ProductDto> Products);
 
     public class GetProductsQueryHandler(IProductRepository repository) : IQueryHandler<GetProductsQuery, GetProductsResult>
     {
@@ -13,13 +10,13 @@ namespace Catalog.Application.Features.Products.GetProducts
 
         public async Task<GetProductsResult> Handle(GetProductsQuery query, CancellationToken cancellationToken)
         {
-            var pageNumber = query.PageNumber < 1 ? 1 : query.PageNumber;
-            var pageSize = query.PageSize < 1 ? 10 : Math.Min(query.PageSize, MaxPageSize);
+            var pageIndex = query.PaginationRequest.PageIndex < 0 ? 0 : query.PaginationRequest.PageIndex;
+            var pageSize = query.PaginationRequest.PageSize < 1 ? 10 : Math.Min(query.PaginationRequest.PageSize, MaxPageSize);
 
             var totalCount = await repository.CountAsync(cancellationToken);
-            var products = await repository.GetPagedAsync(pageNumber, pageSize, cancellationToken);
+            var products = await repository.GetPagedAsync(pageIndex, pageSize, cancellationToken);
 
-            return new GetProductsResult(pageNumber, pageSize, totalCount, products.ToDtoList());
+            return new GetProductsResult(new PaginatedResult<ProductDto>(pageIndex, pageSize, totalCount, products.ToDtoList()));
         }
     }
 }
