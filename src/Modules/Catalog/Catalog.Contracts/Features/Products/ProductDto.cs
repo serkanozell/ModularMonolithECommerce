@@ -1,4 +1,4 @@
-namespace Catalog.Application.Features.Products
+namespace Catalog.Contracts.Features.Products
 {
     public record ProductDto(Guid Id,
                              string Name,

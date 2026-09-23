@@ -9,11 +9,13 @@ builder.Host.UseSerilog((context, configuration) =>
 });
 
 var catalogAssembly = CatalogApplicationAssembly.Instance;
+var basketAssembly = BasketApplicationAssembly.Instance;
 
-builder.Services.AddCarterWithAssemblies(catalogAssembly);
-builder.Services.AddMediatRWithAssemblies(catalogAssembly);
+builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly);
+builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly);
 
-builder.Services.AddCatalogModule(builder.Configuration);
+builder.Services.AddCatalogModule(builder.Configuration)
+                .AddBasketModule(builder.Configuration);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
@@ -39,8 +41,7 @@ app.UseExceptionHandler(options => { });
 //});
 
 
-app.UseCatalogModule();
-
-
+app.UseCatalogModule()
+   .UseBasketModule();
 
 app.Run();

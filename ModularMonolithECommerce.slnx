@@ -13,7 +13,13 @@
     <Project Path="src/Host/Api/Api.csproj" Id="07ad391f-b556-412c-b4a1-554d8cb2e7cb" />
   </Folder>
   <Folder Name="/src/Modules/" />
-  <Folder Name="/src/Modules/Basket/" />
+  <Folder Name="/src/Modules/Basket/">
+    <Project Path="src/Modules/Basket/Basket.Api/Basket.Api.csproj" Id="b1810301-17d5-4bc0-8d69-e7f734c87e5c" />
+    <Project Path="src/Modules/Basket/Basket.Application/Basket.Application.csproj" Id="06eea1ea-d956-454d-9d55-ce9b77764aa4" />
+    <Project Path="src/Modules/Basket/Basket.Contracts/Basket.Contracts.csproj" Id="0f2255bd-0f1c-4b63-b9f6-de0495309168" />
+    <Project Path="src/Modules/Basket/Basket.Domain/Basket.Domain.csproj" Id="2e99f0be-7678-4625-ab56-19221eb5521d" />
+    <Project Path="src/Modules/Basket/Basket.Infrastructure/Basket.Infrastructure.csproj" Id="d7ea35b9-c144-4bfa-bb0c-ec658ce01405" />
+  </Folder>
   <Folder Name="/src/Modules/Catalog/">
     <Project Path="src/Modules/Catalog/Catalog.Api/Catalog.Api.csproj" Id="fe203a67-873c-4622-a5db-b669a29de3c5" />
     <Project Path="src/Modules/Catalog/Catalog.Application/Catalog.Application.csproj" Id="acabc15b-3682-47c1-817c-d843a74650ac" />

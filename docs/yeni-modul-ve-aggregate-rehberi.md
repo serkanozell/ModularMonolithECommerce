@@ -195,5 +195,5 @@ Tüm paket sürümleri `Directory.Packages.props` içinde merkezi yönetilir; cs
 ## D. Bilinen Teknik Borçlar
 
 - `ValidationBehavior` yalnızca `ICommand<TResponse>` kısıtına sahip; query'ler için validator çalışmıyor.
-- Integration event'ler için outbox + Wolverine entegrasyonu henüz yok.
+- Integration event'ler için outbox + Masstransit entegrasyonu henüz yok.
 - `CurrentUser` altyapısı yok; `CreatedBy`/`UpdatedBy` doldurulmuyor.
