@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/BuildingBlocks.Messaging/BuildingBlocks.Messaging.csproj" Id="f03b4f68-c441-4b01-8241-8e7aa5c2162c" />
     <Project Path="src/BuildingBlocks/BuildingBlocks.Shared/BuildingBlocks.Shared.csproj" Id="06fdb944-3912-4d60-8982-d5598299b72f" />
   </Folder>
   <Folder Name="/src/Host/">

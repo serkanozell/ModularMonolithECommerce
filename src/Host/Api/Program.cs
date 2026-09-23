@@ -1,3 +1,4 @@
+using BuildingBlocks.Messaging.Extensions;
 using BuildingBlocks.Shared.Exceptions.Handler;
 using Serilog;
 
@@ -13,6 +14,9 @@ var basketAssembly = BasketApplicationAssembly.Instance;
 
 builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly);
 builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly);
+
+// Must be registered after MediatR so that TransactionBehavior runs innermost
+builder.Services.AddMessaging(builder.Configuration, catalogAssembly, basketAssembly);
 
 builder.Services.AddCatalogModule(builder.Configuration)
                 .AddBasketModule(builder.Configuration);
@@ -40,6 +44,8 @@ app.UseExceptionHandler(options => { });
 //    endpoints.MapControllers();
 //});
 
+
+app.UseMessaging();
 
 app.UseCatalogModule()
    .UseBasketModule();

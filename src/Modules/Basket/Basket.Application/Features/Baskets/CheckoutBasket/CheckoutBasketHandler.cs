@@ -1,4 +1,6 @@
 ﻿using Basket.Domain.Exceptions;
+using BuildingBlocks.Messaging.Events;
+using MassTransit;
 
 namespace Basket.Application.Features.Baskets.CheckoutBasket
 {
@@ -14,60 +16,41 @@ namespace Basket.Application.Features.Baskets.CheckoutBasket
         }
     }
 
-    internal class CheckoutBasketHandler(IBasketRepository dbContext)
-        : ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>
+    // Transaction, outbox persistence and commit are handled by TransactionBehavior
+    internal class CheckoutBasketHandler(IBasketRepository basketRepository, IPublishEndpoint publishEndpoint) : ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>
     {
         public async Task<CheckoutBasketResult> Handle(CheckoutBasketCommand command, CancellationToken cancellationToken)
         {
-            // get existing basket with total price
-            // Set totalprice on basketcheckout event message
-            // send basket checkout event to rabbitmq using masstransit
-            // delete the basket
+            var checkout = command.BasketCheckout;
 
-            //await using var transaction =
-            //    await dbContext.Database.BeginTransactionAsync(cancellationToken);
+            var basket = await basketRepository.GetBasket(checkout.UserName, cancellationToken: cancellationToken)
+                ?? throw new BasketNotFoundException(checkout.UserName);
 
-            // outbox + Masstransit eklenmeli
-            try
+            var eventMessage = new BasketCheckoutIntegrationEvent
             {
-                // Get existing basket with total price
-                //var basket = await dbContext.ShoppingCarts
-                //    .Include(x => x.Items)
-                //    .SingleOrDefaultAsync(x => x.UserName == command.BasketCheckout.UserName, cancellationToken);
+                UserName = checkout.UserName,
+                CustomerId = checkout.CustomerId,
+                TotalPrice = basket.TotalPrice,
+                FirstName = checkout.FirstName,
+                LastName = checkout.LastName,
+                EmailAddress = checkout.EmailAddress,
+                AddressLine = checkout.AddressLine,
+                Country = checkout.Country,
+                State = checkout.State,
+                ZipCode = checkout.ZipCode,
+                CardName = checkout.CardName,
+                CardNumber = checkout.CardNumber,
+                Expiration = checkout.Expiration,
+                Cvv = checkout.Cvv,
+                PaymentMethod = checkout.PaymentMethod
+            };
 
-                //if (basket == null)
-                //{
-                //    throw new BasketNotFoundException(command.BasketCheckout.UserName);
-                //}
+            // Written to messaging.OutboxMessage via MassTransit bus outbox
+            await publishEndpoint.Publish(eventMessage, cancellationToken);
 
-                //// Set total price on basket checkout event message
-                //var eventMessage = command.BasketCheckout.Adapt<BasketCheckoutIntegrationEvent>();
-                //eventMessage.TotalPrice = basket.TotalPrice;
+            await basketRepository.DeleteBasket(checkout.UserName, cancellationToken);
 
-                //// Write a message to the outbox
-                //var outboxMessage = new OutboxMessage
-                //{
-                //    Id = Guid.NewGuid(),
-                //    Type = typeof(BasketCheckoutIntegrationEvent).AssemblyQualifiedName!,
-                //    Content = JsonSerializer.Serialize(eventMessage),
-                //    OccuredOn = DateTime.UtcNow
-                //};
-
-                //dbContext.OutboxMessages.Add(outboxMessage);
-
-                //// Delete the basket
-                //dbContext.ShoppingCarts.Remove(basket);
-
-                //await dbContext.SaveChangesAsync(cancellationToken);
-                //await transaction.CommitAsync(cancellationToken);
-
-                return new CheckoutBasketResult(true);
-            }
-            catch
-            {
-                //await transaction.RollbackAsync(cancellationToken);
-                return new CheckoutBasketResult(false);
-            }
+            return new CheckoutBasketResult(true);
         }
     }
 }
