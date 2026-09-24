@@ -15,7 +15,7 @@ namespace Basket.Infrastructure.Repositories
                             && !sc.IsDeleted);
 
             if (asNoTracking)
-                query.AsNoTracking();
+                query = query.AsNoTracking();
 
             var basket = await query.FirstOrDefaultAsync(cancellationToken);
 

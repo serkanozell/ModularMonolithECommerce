@@ -9,5 +9,8 @@ services:
   messagebus:
     image: rabbitmq:3-management
 
+  distributedcache:
+    image: redis
+
 volumes:
   postgres_ecommercedb:

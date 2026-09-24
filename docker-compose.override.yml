@@ -33,3 +33,9 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+
+  distributedcache:
+    container_name: distributedcache
+    restart: always
+    ports:
+      - "6379:6379"

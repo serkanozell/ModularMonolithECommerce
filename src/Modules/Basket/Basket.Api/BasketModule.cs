@@ -20,6 +20,7 @@ namespace Basket.Api
             // AddMediatRWithAssemblies ile merkezi olarak yapılır.
 
             services.AddScoped<IBasketRepository, BasketRepository>();
+            services.Decorate<IBasketRepository, CachedBasketRepository>();
 
             services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
             services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();

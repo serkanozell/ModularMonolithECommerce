@@ -1,4 +1,5 @@
 using BuildingBlocks.Messaging.Extensions;
+using BuildingBlocks.Shared.Caching;
 using BuildingBlocks.Shared.Exceptions.Handler;
 using Serilog;
 
@@ -12,8 +13,18 @@ builder.Host.UseSerilog((context, configuration) =>
 var catalogAssembly = CatalogApplicationAssembly.Instance;
 var basketAssembly = BasketApplicationAssembly.Instance;
 
+
+// extensiona taşınıp birbiri ile ilişkili şeyler methodlara bölünecek
+
 builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly);
 builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly);
+
+builder.Services.Configure<RedisOptions>(builder.Configuration.GetSection("RedisOptions"));
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
 
 // Must be registered after MediatR so that TransactionBehavior runs innermost
 builder.Services.AddMessaging(builder.Configuration, catalogAssembly, basketAssembly);

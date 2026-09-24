@@ -1,8 +1,8 @@
 global using Basket.Domain.Entities;
 global using Basket.Domain.Repositories;
 global using BuildingBlocks.Shared.CQRS;
-global using Catalog.Contracts.Features.Products.GetProductById;
 global using Carter;
+global using Catalog.Contracts.Features.Products.GetProductById;
 global using FluentValidation;
 global using MediatR;
 global using Microsoft.AspNetCore.Builder;

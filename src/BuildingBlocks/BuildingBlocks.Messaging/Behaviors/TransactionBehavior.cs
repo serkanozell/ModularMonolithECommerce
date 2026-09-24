@@ -2,7 +2,6 @@ using BuildingBlocks.Messaging.Persistence;
 using BuildingBlocks.Messaging.Transactions;
 using BuildingBlocks.Shared.CQRS;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 using System.Data;
