@@ -36,7 +36,7 @@ namespace Catalog.Application.Features.Products.UpdateProduct
         }
     }
 
-    public class UpdateProductCommandHandler(IProductRepository repository) : ICommandHandler<UpdateProductCommand, UpdateProductResult>
+    internal sealed class UpdateProductCommandHandler(IProductRepository repository) : ICommandHandler<UpdateProductCommand, UpdateProductResult>
     {
         public async Task<UpdateProductResult> Handle(UpdateProductCommand command, CancellationToken cancellationToken)
         {

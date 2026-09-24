@@ -17,7 +17,7 @@ namespace Basket.Application.Features.Baskets.CheckoutBasket
     }
 
     // Transaction, outbox persistence and commit are handled by TransactionBehavior
-    internal class CheckoutBasketHandler(IBasketRepository basketRepository, IPublishEndpoint publishEndpoint) : ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>
+    internal sealed class CheckoutBasketHandler(IBasketRepository basketRepository, IPublishEndpoint publishEndpoint) : ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>
     {
         public async Task<CheckoutBasketResult> Handle(CheckoutBasketCommand command, CancellationToken cancellationToken)
         {

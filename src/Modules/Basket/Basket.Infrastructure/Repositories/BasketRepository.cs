@@ -9,13 +9,15 @@ namespace Basket.Infrastructure.Repositories
         public async Task<ShoppingCart> GetBasket(string userName, bool asNoTracking = true, CancellationToken cancellationToken = default)
         {
             var query = dbContext.ShoppingCarts
-                .Include(x => x.Items)
-                .Where(x => x.UserName == userName);
+                .Include(sc => sc.Items)
+                .Where(sc => sc.UserName == userName
+                            && sc.IsActive
+                            && !sc.IsDeleted);
 
             if (asNoTracking)
                 query.AsNoTracking();
 
-            var basket = await query.SingleOrDefaultAsync(cancellationToken);
+            var basket = await query.FirstOrDefaultAsync(cancellationToken);
 
             return basket ?? throw new BasketNotFoundException(userName);
         }
@@ -35,6 +37,16 @@ namespace Basket.Infrastructure.Repositories
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return true;
+        }
+
+        public async Task<IEnumerable<ShoppingCartItem>> GetBasketItemsByProductId(Guid productId, CancellationToken cancellationToken = default)
+        {
+            return await dbContext.ShoppingCarts
+                .SelectMany(x => x.Items)
+                .Where(i => i.ProductId == productId
+                            && i.IsActive
+                            && !i.IsDeleted)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<int> SaveChangesAsync(string? userName = null, CancellationToken cancellationToken = default)

@@ -1,12 +1,13 @@
+using BuildingBlocks.Messaging.Events;
 using Catalog.Domain.Events;
+using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace Catalog.Application.Features.Products.EventHandlers
 {
-    public class ProductPriceChangedEventHandler(ILogger<ProductPriceChangedEventHandler> logger)
-        : INotificationHandler<ProductPriceChangedEvent>
+    public class ProductPriceChangedEventHandler(IPublishEndpoint publishEndpoint, ILogger<ProductPriceChangedEventHandler> logger) : INotificationHandler<ProductPriceChangedEvent>
     {
-        public Task Handle(ProductPriceChangedEvent notification, CancellationToken cancellationToken)
+        public async Task Handle(ProductPriceChangedEvent notification, CancellationToken cancellationToken)
         {
             logger.LogInformation("Domain event handled: {DomainEvent} - ProductId: {ProductId}, {OldPrice} -> {NewPrice}",
                                   notification.GetType().Name,
@@ -14,9 +15,15 @@ namespace Catalog.Application.Features.Products.EventHandlers
                                   notification.OldPrice,
                                   notification.NewPrice);
 
-            // İleride: outbox'a integration event yazılacak.
 
-            return Task.CompletedTask;
+            var productPriceChangedIntegrationEvent = new ProductPriceChangedIntegrationEvent
+            {
+                ProductId = notification.ProductId,
+                OldPrice = notification.OldPrice,
+                NewPrice = notification.NewPrice
+            };
+
+            await publishEndpoint.Publish(productPriceChangedIntegrationEvent, cancellationToken);
         }
     }
 }

@@ -8,6 +8,7 @@
         public string Color { get; private set; } = default!;
         public decimal Price { get; private set; } = default!;
         public string ProductName { get; private set; } = default!;
+        public DateTime PriceUpdatedAtUtc { get; private set; }
 
         private ShoppingCartItem()
         {
@@ -22,8 +23,21 @@
             Color = color;
             Price = price;
             ProductName = productName;
+            PriceUpdatedAtUtc = DateTime.UtcNow;
             IsActive = true;
             IsDeleted = false;
+        }
+
+        public bool UpdatePrice(decimal newPrice, DateTime priceChangedAtUtc)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(newPrice);
+
+            if (priceChangedAtUtc <= PriceUpdatedAtUtc)
+                return false;
+
+            Price = newPrice;
+            PriceUpdatedAtUtc = priceChangedAtUtc;
+            return true;
         }
     }
 }
