@@ -1,3 +1,4 @@
+using Basket.Application.Features.Baskets.Dtos;
 using Basket.Domain.Exceptions;
 
 namespace Basket.Application.Features.Baskets.GetBasketByUserName

@@ -1,4 +1,6 @@
-﻿namespace Basket.Application.Features.Baskets.CheckoutBasket
+﻿using Basket.Application.Features.Baskets.Dtos;
+
+namespace Basket.Application.Features.Baskets.CheckoutBasket
 {
     public record CheckoutBasketRequest(BasketCheckoutDto BasketCheckout);
     public record CheckoutBasketResponse(bool IsSuccess);

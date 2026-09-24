@@ -1,3 +1,5 @@
+using Basket.Application.Features.Baskets.Dtos;
+
 namespace Basket.Application.Features.Baskets
 {
     public static class BasketMappings

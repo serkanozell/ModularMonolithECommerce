@@ -1,4 +1,4 @@
-﻿namespace Basket.Application.Features.Baskets
+﻿namespace Basket.Application.Features.Baskets.Dtos
 {
     public record BasketCheckoutDto(
         string UserName,

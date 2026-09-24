@@ -1,4 +1,6 @@
-﻿namespace Basket.Application.Features.Baskets.AddItemIntoBasket
+﻿using Basket.Application.Features.Baskets.Dtos;
+
+namespace Basket.Application.Features.Baskets.AddItemIntoBasket
 {
     public record AddItemIntoBasketCommand(string UserName, BasketItemDto BasketItemDto) : ICommand<AddItemIntoBasketResult>;
     public record AddItemIntoBasketResult(Guid Id);

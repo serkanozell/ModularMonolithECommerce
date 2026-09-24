@@ -1,6 +1,8 @@
+using Basket.Application.Features.Baskets.Dtos;
+
 namespace Basket.Application.Features.Baskets.CreateBasket
 {
-    public record CreateBasketRequest(BasketDto BasketDto);
+    public record CreateBasketRequest(CreateBasketDto CreateBasketDto);
 
     public record CreateBasketResponse(Guid Id);
 
@@ -10,7 +12,7 @@ namespace Basket.Application.Features.Baskets.CreateBasket
         {
             app.MapPost("/api/baskets", async (CreateBasketRequest request, ISender sender, CancellationToken cancellationToken) =>
             {
-                var command = new CreateBasketCommand(request.BasketDto);
+                var command = new CreateBasketCommand(request.CreateBasketDto);
 
                 var result = await sender.Send(command, cancellationToken);
 

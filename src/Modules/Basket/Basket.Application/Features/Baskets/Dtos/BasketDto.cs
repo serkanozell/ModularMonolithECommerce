@@ -1,4 +1,4 @@
-namespace Basket.Application.Features.Baskets
+namespace Basket.Application.Features.Baskets.Dtos
 {
     public record BasketDto(Guid Id,
                             string UserName,
@@ -11,4 +11,6 @@ namespace Basket.Application.Features.Baskets
                                 string Color,
                                 int Quantity,
                                 decimal Price);
+
+
 }

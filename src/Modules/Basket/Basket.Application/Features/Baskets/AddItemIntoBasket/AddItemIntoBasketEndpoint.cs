@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Basket.Application.Features.Baskets.Dtos;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Basket.Application.Features.Baskets.AddItemIntoBasket
 {

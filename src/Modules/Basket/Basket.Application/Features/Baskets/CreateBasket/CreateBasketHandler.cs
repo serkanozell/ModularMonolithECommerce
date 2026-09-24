@@ -1,6 +1,8 @@
+using Basket.Application.Features.Baskets.Dtos;
+
 namespace Basket.Application.Features.Baskets.CreateBasket
 {
-    public record CreateBasketCommand(BasketDto BasketDto) : ICommand<CreateBasketResult>;
+    public record CreateBasketCommand(CreateBasketDto CreateBasketDto) : ICommand<CreateBasketResult>;
 
     public record CreateBasketResult(Guid Id);
 
@@ -8,7 +10,7 @@ namespace Basket.Application.Features.Baskets.CreateBasket
     {
         public CreateBasketCommandValidator()
         {
-            RuleFor(x => x.BasketDto.UserName)
+            RuleFor(x => x.CreateBasketDto.UserName)
                 .NotEmpty()
                 .WithMessage("UserName is required.")
                 .MaximumLength(100)
@@ -16,31 +18,34 @@ namespace Basket.Application.Features.Baskets.CreateBasket
         }
     }
 
-    public class CreateBasketCommandHandler(IBasketRepository repository) : ICommandHandler<CreateBasketCommand, CreateBasketResult>
+    public class CreateBasketCommandHandler(IBasketRepository repository, ISender sender) : ICommandHandler<CreateBasketCommand, CreateBasketResult>
     {
         public async Task<CreateBasketResult> Handle(CreateBasketCommand command, CancellationToken cancellationToken)
         {
-            var basket = CreateNewBasket(command.BasketDto);
+            var basket = await CreateNewBasket(command.CreateBasketDto, cancellationToken);
 
             await repository.CreateBasket(basket, cancellationToken);
 
             return new CreateBasketResult(basket.Id);
         }
 
-        private static ShoppingCart CreateNewBasket(BasketDto basketDto)
+        private async Task<ShoppingCart> CreateNewBasket(CreateBasketDto createBasketDto, CancellationToken cancellationToken)
         {
             // create new basket
-            var newBasket = ShoppingCart.Create(basketDto.UserName);
+            var newBasket = ShoppingCart.Create(createBasketDto.UserName);
 
-            basketDto.Items.ForEach(item =>
+            foreach (var item in createBasketDto.Items)
             {
+                // price and name are always resolved from catalog, never trusted from client input
+                var result = await sender.Send(new GetProductByIdQuery(item.ProductId), cancellationToken);
+
                 newBasket.AddItem(
                     item.ProductId,
                     item.Quantity,
                     item.Color,
-                    item.Price,
-                    item.ProductName);
-            });
+                    result.Product.Price,
+                    result.Product.Name);
+            }
 
             return newBasket;
         }

@@ -1,4 +1,5 @@
-﻿using Basket.Domain.Exceptions;
+﻿using Basket.Application.Features.Baskets.Dtos;
+using Basket.Domain.Exceptions;
 using BuildingBlocks.Messaging.Events;
 using MassTransit;
 
@@ -17,7 +18,7 @@ namespace Basket.Application.Features.Baskets.CheckoutBasket
     }
 
     // Transaction, outbox persistence and commit are handled by TransactionBehavior
-    internal sealed class CheckoutBasketHandler(IBasketRepository basketRepository, IPublishEndpoint publishEndpoint) : ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>
+    internal sealed class CheckoutBasketHandler(IBasketRepository basketRepository, IPublishEndpoint publishEndpoint, ISender sender) : ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>
     {
         public async Task<CheckoutBasketResult> Handle(CheckoutBasketCommand command, CancellationToken cancellationToken)
         {
@@ -25,6 +26,17 @@ namespace Basket.Application.Features.Baskets.CheckoutBasket
 
             var basket = await basketRepository.GetBasket(checkout.UserName, cancellationToken: cancellationToken)
                 ?? throw new BasketNotFoundException(checkout.UserName);
+
+            // Prices are re-validated against catalog so that the order is always created with current prices
+            foreach (var productId in basket.Items.Select(i => i.ProductId).Distinct().ToList())
+            {
+                var result = await sender.Send(new GetProductByIdQuery(productId), cancellationToken);
+
+                basket.UpdateItemPrice(productId, result.Product.Price, DateTime.UtcNow);
+            }
+
+            // kontrol sonrası totalprice değiştiyse kullanıcıya bilgi verilmeli.
+            // tüm id leri distinct alıp hepsini tek seferde getiren servis yapılabilir.
 
             var eventMessage = new BasketCheckoutIntegrationEvent
             {
