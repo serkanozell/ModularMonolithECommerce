@@ -63,10 +63,21 @@ namespace Basket.Infrastructure.Repositories
             return basketfromDb;
         }
 
-        // SOLIDE AYKIRI DURUM
-        public Task<IEnumerable<ShoppingCartItem>> GetBasketItemsByProductId(Guid productId, CancellationToken cancellationToken = default)
+        public Task<IReadOnlyList<ShoppingCart>> GetBasketsByProductId(Guid productId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return repository.GetBasketsByProductId(productId, cancellationToken);
+        }
+
+        public async Task<int> UpdateBaskets(IEnumerable<ShoppingCart> baskets, CancellationToken cancellationToken = default)
+        {
+            var basketList = baskets.ToList();
+
+            var result = await repository.UpdateBaskets(basketList, cancellationToken);
+
+            foreach (var basket in basketList)
+                await cache.RemoveAsync(BasketKey(basket.UserName), cancellationToken);
+
+            return result;
         }
 
         public async Task<int> SaveChangesAsync(string? userName = null, CancellationToken cancellationToken = default)

@@ -39,14 +39,21 @@ namespace Basket.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<IEnumerable<ShoppingCartItem>> GetBasketItemsByProductId(Guid productId, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<ShoppingCart>> GetBasketsByProductId(Guid productId, CancellationToken cancellationToken = default)
         {
             return await dbContext.ShoppingCarts
-                .SelectMany(x => x.Items)
-                .Where(i => i.ProductId == productId
-                            && i.IsActive
-                            && !i.IsDeleted)
+                .Include(sc => sc.Items)
+                .Where(sc => sc.IsActive
+                            && !sc.IsDeleted
+                            && sc.Items.Any(i => i.ProductId == productId
+                                              && i.IsActive
+                                              && !i.IsDeleted))
                 .ToListAsync(cancellationToken);
+        }
+
+        public async Task<int> UpdateBaskets(IEnumerable<ShoppingCart> baskets, CancellationToken cancellationToken = default)
+        {
+            return await dbContext.SaveChangesAsync(cancellationToken);
         }
 
         public async Task<int> SaveChangesAsync(string? userName = null, CancellationToken cancellationToken = default)

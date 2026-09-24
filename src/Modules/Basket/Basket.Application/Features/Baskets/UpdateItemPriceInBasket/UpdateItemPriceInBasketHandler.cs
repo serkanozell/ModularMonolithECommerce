@@ -16,19 +16,30 @@
     {
         public async Task<UpdateItemPriceInBasketResult> Handle(UpdateItemPriceInBasketCommand command, CancellationToken cancellationToken)
         {
-            var itemsToUpdate = await basketRepository.GetBasketItemsByProductId(command.ProductId, cancellationToken);
+            var baskets = await basketRepository.GetBasketsByProductId(command.ProductId, cancellationToken);
 
-            if (itemsToUpdate == null || !itemsToUpdate.Any())
+            var updatedBaskets = baskets
+                .Where(basket => basket.UpdateItemPrice(command.ProductId, command.Price, command.PriceChangedAtUtc))
+                .ToList();
+
+            if (updatedBaskets.Count == 0)
                 return new UpdateItemPriceInBasketResult(false);
 
-            foreach (var item in itemsToUpdate)
-            {
-                item.UpdatePrice(command.Price, command.PriceChangedAtUtc);
-            }
-
-            await basketRepository.SaveChangesAsync(cancellationToken: cancellationToken);
+            await basketRepository.UpdateBaskets(updatedBaskets, cancellationToken);
 
             return new UpdateItemPriceInBasketResult(true);
         }
     }
+
+    ///
+    /// ürün fiyatı değişti
+    /// event fırlatıldı
+    /// basketteki UpdateItemPriceInBasketHandler a geldi
+    /// fiyatı değişen ürünün olduğu tüm sepetler dbden çekilir. çünkü aggregate üzerinden işlem yapmalıyız
+    /// tüm sepetlerdeki ilgili ürünün fiyatı güncellenir.
+    /// tüm sepetler güncellenir ve db ye kaydedilir.
+    /// update yapıldığı için cache deki sepetler silinir çünkü cache deki sepetler artık eski fiyatı gösteriyor.
+    /// 
+    ///
+
 }

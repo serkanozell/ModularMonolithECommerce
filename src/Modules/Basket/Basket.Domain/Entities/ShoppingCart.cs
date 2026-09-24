@@ -74,6 +74,16 @@ namespace Basket.Domain.Entities
             item.Quantity = quantity;
         }
 
+        public bool UpdateItemPrice(Guid productId, decimal newPrice, DateTime priceChangedAtUtc)
+        {
+            var updated = false;
+
+            foreach (var item in _items.Where(i => i.ProductId == productId))
+                updated |= item.UpdatePrice(newPrice, priceChangedAtUtc);
+
+            return updated;
+        }
+
         public void ClearItems() => _items.Clear();
 
         public void Activate()
