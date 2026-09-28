@@ -1,3 +1,5 @@
+using BuildingBlocks.Shared.Dtos;
+
 namespace BuildingBlocks.Messaging.Events
 {
     public record BasketCheckoutIntegrationEvent : IntegrationEvent
@@ -21,6 +23,9 @@ namespace BuildingBlocks.Messaging.Events
         public string Expiration { get; set; } = default!;
         public string Cvv { get; set; } = default!;
         public int PaymentMethod { get; set; } = default!;
-    }
 
+        // OrderItems
+
+        public List<OrderItemDto> OrderItems { get; set; } = new List<OrderItemDto>();
+    }
 }

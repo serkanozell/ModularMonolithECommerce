@@ -28,7 +28,13 @@
     <Project Path="src/Modules/Catalog/Catalog.Domain/Catalog.Domain.csproj" Id="fe791eb5-9294-4fc7-b317-92b5a69fb41c" />
     <Project Path="src/Modules/Catalog/Catalog.Infrastructure/Catalog.Infrastructure.csproj" Id="33a26dd3-3d64-4f72-97f7-3eb216ac8855" />
   </Folder>
-  <Folder Name="/src/Modules/Ordering/" />
+  <Folder Name="/src/Modules/Ordering/">
+    <Project Path="src/Modules/Ordering/Ordering.Api/Ordering.Api.csproj" />
+    <Project Path="src/Modules/Ordering/Ordering.Application/Ordering.Application.csproj" Id="0155fd18-8619-4b76-a035-3c9544fd7e8b" />
+    <Project Path="src/Modules/Ordering/Ordering.Contracts/Ordering.Contracts.csproj" Id="e1a09ec1-ad75-47b6-8f87-d2f3385c9f97" />
+    <Project Path="src/Modules/Ordering/Ordering.Domain/Ordering.Domain.csproj" Id="a51c410c-7d2a-4cb5-9760-792eaa3ae2f8" />
+    <Project Path="src/Modules/Ordering/Ordering.Infrastructure/Ordering.Infrastructure.csproj" Id="6f06e95e-2163-4a8a-98e7-99829991b713" />
+  </Folder>
   <Project Path="docker-compose.dcproj">
     <Build />
   </Project>

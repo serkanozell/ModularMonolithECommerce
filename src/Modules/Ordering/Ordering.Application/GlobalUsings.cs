@@ -1,0 +1,12 @@
+global using BuildingBlocks.Shared.CQRS;
+global using BuildingBlocks.Shared.Pagination;
+global using Carter;
+global using FluentValidation;
+global using MediatR;
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Routing;
+global using Ordering.Application.Features.Orders;
+global using Ordering.Domain.Entities;
+global using Ordering.Domain.Repositories;
+global using Ordering.Domain.ValueObjects;

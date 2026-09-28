@@ -1,4 +1,6 @@
-﻿namespace Basket.Application.Features.Baskets.Dtos
+﻿using BuildingBlocks.Shared.Dtos;
+
+namespace Basket.Application.Features.Baskets.Dtos
 {
     public record BasketCheckoutDto(
         string UserName,
@@ -17,6 +19,7 @@
         string CardNumber,
         string Expiration,
         string Cvv,
-        int PaymentMethod
+        int PaymentMethod,
+        List<OrderItemDto> OrderItems
         );
 }

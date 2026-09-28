@@ -53,6 +53,12 @@ namespace BuildingBlocks.Messaging.Extensions
 
                 config.AddConsumers(consumerAssemblies);
 
+                //config.AddSagaStateMachines(consumerAssemblies);
+
+                //config.AddSagas(consumerAssemblies);
+
+                //config.AddActivities(consumerAssemblies);
+
                 config.AddEntityFrameworkOutbox<MessagingDbContext>(outbox =>
                 {
                     outbox.UsePostgres();
@@ -66,24 +72,16 @@ namespace BuildingBlocks.Messaging.Extensions
                     endpoint.UseMessageRetry(retry => retry.Intervals(100, 500, 1000));
                     endpoint.UseEntityFrameworkOutbox<MessagingDbContext>(context);
                 });
-
-                if (string.Equals(brokerOptions.Transport, MessageBrokerOptions.RabbitMq, StringComparison.OrdinalIgnoreCase))
+                config.UsingRabbitMq((context, cfg) =>
                 {
-                    config.UsingRabbitMq((context, cfg) =>
+                    cfg.Host(brokerOptions.Host, host =>
                     {
-                        cfg.Host(brokerOptions.Host, brokerOptions.VirtualHost, host =>
-                        {
-                            host.Username(brokerOptions.UserName);
-                            host.Password(brokerOptions.Password);
-                        });
-
-                        cfg.ConfigureEndpoints(context);
+                        host.Username(brokerOptions.UserName);
+                        host.Password(brokerOptions.Password);
                     });
-                }
-                else
-                {
-                    config.UsingInMemory((context, cfg) => cfg.ConfigureEndpoints(context));
-                }
+
+                    cfg.ConfigureEndpoints(context);
+                });
             });
 
             return services;

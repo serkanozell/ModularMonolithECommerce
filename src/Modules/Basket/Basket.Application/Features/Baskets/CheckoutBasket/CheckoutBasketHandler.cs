@@ -1,6 +1,7 @@
 ﻿using Basket.Application.Features.Baskets.Dtos;
 using Basket.Domain.Exceptions;
 using BuildingBlocks.Messaging.Events;
+using BuildingBlocks.Shared.Dtos;
 using MassTransit;
 
 namespace Basket.Application.Features.Baskets.CheckoutBasket
@@ -54,7 +55,8 @@ namespace Basket.Application.Features.Baskets.CheckoutBasket
                 CardNumber = checkout.CardNumber,
                 Expiration = checkout.Expiration,
                 Cvv = checkout.Cvv,
-                PaymentMethod = checkout.PaymentMethod
+                PaymentMethod = checkout.PaymentMethod,
+                OrderItems = basket.Items.Select(i => new OrderItemDto(i.ProductId, i.Quantity, i.Price)).ToList()
             };
 
             // Written to messaging.OutboxMessage via MassTransit bus outbox

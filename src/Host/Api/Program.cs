@@ -12,14 +12,23 @@ builder.Host.UseSerilog((context, configuration) =>
 
 var catalogAssembly = CatalogApplicationAssembly.Instance;
 var basketAssembly = BasketApplicationAssembly.Instance;
+var orderingAssembly = OrderingApplicationAssembly.Instance;
 
 
 // extensiona taşınıp birbiri ile ilişkili şeyler methodlara bölünecek
 
-builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly);
-builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly);
+builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly);
+builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly);
 
-builder.Services.Configure<RedisOptions>(builder.Configuration.GetSection("RedisOptions"));
+builder.Services.AddOptions<RedisOptions>()
+                .Bind(builder.Configuration.GetSection("RedisOptions"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+builder.Services.AddOptions<MessageBrokerOptions>()
+                .Bind(builder.Configuration.GetSection("MessageBroker"))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
@@ -27,10 +36,11 @@ builder.Services.AddStackExchangeRedisCache(options =>
 });
 
 // Must be registered after MediatR so that TransactionBehavior runs innermost
-builder.Services.AddMessaging(builder.Configuration, catalogAssembly, basketAssembly);
+builder.Services.AddMessaging(builder.Configuration, catalogAssembly, basketAssembly, orderingAssembly);
 
 builder.Services.AddCatalogModule(builder.Configuration)
-                .AddBasketModule(builder.Configuration);
+                .AddBasketModule(builder.Configuration)
+                .AddOrderingModule(builder.Configuration);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
@@ -59,6 +69,7 @@ app.UseExceptionHandler(options => { });
 app.UseMessaging();
 
 app.UseCatalogModule()
-   .UseBasketModule();
+   .UseBasketModule()
+   .UseOrderingModule();
 
 app.Run();
