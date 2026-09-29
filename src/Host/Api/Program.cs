@@ -1,6 +1,7 @@
 using BuildingBlocks.Messaging.Extensions;
 using BuildingBlocks.Shared.Caching;
 using BuildingBlocks.Shared.Exceptions.Handler;
+using BuildingBlocks.Shared.Services;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +39,14 @@ builder.Services.AddStackExchangeRedisCache(options =>
 // Must be registered after MediatR so that TransactionBehavior runs innermost
 builder.Services.AddMessaging(builder.Configuration, catalogAssembly, basketAssembly, orderingAssembly);
 
+builder.Services.AddKeycloakWebApiAuthentication(builder.Configuration, "Keycloak");
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+
+builder.Services.AddAuthorization();
+
 builder.Services.AddCatalogModule(builder.Configuration)
                 .AddBasketModule(builder.Configuration)
                 .AddOrderingModule(builder.Configuration);
@@ -56,9 +65,9 @@ app.UseExceptionHandler(options => { });
 
 //app.UseRouting();
 
-//app.UseAuthentication();
+app.UseAuthentication();
 
-//app.UseAuthorization();
+app.UseAuthorization();
 
 //app.UseEndpoints(endpoints =>
 //{

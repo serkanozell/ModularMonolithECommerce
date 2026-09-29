@@ -16,7 +16,8 @@ namespace Catalog.Application.Features.Products.DeleteProduct
             .WithTags("Products")
             .Produces<DeleteProductResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status404NotFound);
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .RequireAuthorization();
         }
     }
 }

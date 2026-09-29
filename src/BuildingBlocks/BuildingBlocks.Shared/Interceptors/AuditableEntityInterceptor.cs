@@ -1,4 +1,5 @@
 ﻿using BuildingBlocks.Shared.DDD;
+using BuildingBlocks.Shared.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -7,12 +8,12 @@ namespace BuildingBlocks.Shared.Interceptors
 {
     public sealed class AuditableEntityInterceptor : SaveChangesInterceptor
     {
-        //private readonly ICurrentUser _currentUser;
+        private readonly ICurrentUser _currentUser;
 
-        //public AuditableEntityInterceptor(ICurrentUser currentUser)
-        //{
-        //    _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
-        //}
+        public AuditableEntityInterceptor(ICurrentUser currentUser)
+        {
+            _currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
+        }
 
         public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
         {
@@ -46,7 +47,7 @@ namespace BuildingBlocks.Shared.Interceptors
                 else if (entry.State == EntityState.Modified || entry.HasChangedOwnedEntities())
                 {
                     entry.Property(nameof(IEntity.UpdatedBy)).CurrentValue = actor;
-                    //entry.Property(nameof(IEntity.UpdatedDate)).CurrentValue = now;
+                    entry.Property(nameof(IEntity.UpdatedAt)).CurrentValue = now;
                 }
 
                 else if (entry.State == EntityState.Deleted)
@@ -74,11 +75,10 @@ namespace BuildingBlocks.Shared.Interceptors
         }
         private string GetCurrentActor()
         {
-            //if (!_currentUser.IsAuthenticated) return "system";
+            if (!_currentUser.IsAuthenticated) return "system";
 
-            //var id = _currentUser.UserId ?? "system";
-            //return id.Length <= 100 ? id : id[..100];
-            return "system";
+            var id = _currentUser.UserId ?? "system";
+            return id.Length <= 100 ? id : id[..100];
         }
     }
 
@@ -86,9 +86,9 @@ namespace BuildingBlocks.Shared.Interceptors
     {
         public static bool HasChangedOwnedEntities(this EntityEntry entry) =>
             entry.References.Any(r =>
-            r.TargetEntry != null &&
-            r.TargetEntry.Metadata.IsOwned() &&
-            (r.TargetEntry.State == EntityState.Added || r.TargetEntry.State == EntityState.Modified)
+            r.TargetEntry != null
+            && r.TargetEntry.Metadata.IsOwned()
+            && (r.TargetEntry.State == EntityState.Added || r.TargetEntry.State == EntityState.Modified)
             );
     }
 }
