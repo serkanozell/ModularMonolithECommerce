@@ -28,7 +28,8 @@ namespace Ordering.Api
             services.AddDbContext<OrderingDbContext>((sp, options) =>
             {
                 options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-                options.UseNpgsql(sp.GetRequiredService<DbConnection>());
+                options.UseNpgsql(sp.GetRequiredService<DbConnection>())
+                       .UseSnakeCaseNamingConvention();
             });
 
             return services;

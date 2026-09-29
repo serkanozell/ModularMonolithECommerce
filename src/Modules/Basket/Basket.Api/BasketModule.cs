@@ -28,7 +28,8 @@ namespace Basket.Api
             services.AddDbContext<BasketDbContext>((sp, options) =>
             {
                 options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-                options.UseNpgsql(sp.GetRequiredService<DbConnection>());
+                options.UseNpgsql(sp.GetRequiredService<DbConnection>())
+                       .UseSnakeCaseNamingConvention();
             });
 
             return services;

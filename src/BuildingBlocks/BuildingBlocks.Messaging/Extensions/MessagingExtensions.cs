@@ -40,7 +40,8 @@ namespace BuildingBlocks.Messaging.Extensions
             services.AddDbContext<MessagingDbContext>((sp, options) =>
             {
                 options.AddInterceptors(sp.GetRequiredService<EnlistTransactionInterceptor>());
-                options.UseNpgsql(sp.GetRequiredService<DbConnection>());
+                options.UseNpgsql(sp.GetRequiredService<DbConnection>())
+                       .UseSnakeCaseNamingConvention();
             });
 
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(TransactionBehavior<,>));

@@ -12,5 +12,8 @@ services:
   distributedcache:
     image: redis
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7
+
 volumes:
   postgres_ecommercedb:
