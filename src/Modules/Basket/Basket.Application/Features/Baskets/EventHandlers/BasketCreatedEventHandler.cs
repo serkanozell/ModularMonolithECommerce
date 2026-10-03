@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Basket.Application.Features.Baskets.EventHandlers
 {
-    public class BasketCreatedEventHandler(ILogger<BasketCreatedEventHandler> logger)
+    internal sealed class BasketCreatedEventHandler(ILogger<BasketCreatedEventHandler> logger)
         : INotificationHandler<BasketCreatedEvent>
     {
         public Task Handle(BasketCreatedEvent notification, CancellationToken cancellationToken)

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Catalog.Application.Features.Products.EventHandlers
 {
-    public class ProductPriceChangedEventHandler(IPublishEndpoint publishEndpoint, ILogger<ProductPriceChangedEventHandler> logger) : INotificationHandler<ProductPriceChangedEvent>
+    public sealed class ProductPriceChangedEventHandler(IPublishEndpoint publishEndpoint, ILogger<ProductPriceChangedEventHandler> logger) : INotificationHandler<ProductPriceChangedEvent>
     {
         public async Task Handle(ProductPriceChangedEvent notification, CancellationToken cancellationToken)
         {

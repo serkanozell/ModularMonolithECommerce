@@ -1,6 +1,6 @@
 namespace Catalog.Application.Features.Products.GetProductById
 {
-    public class GetProductByIdQueryHandler(IProductRepository repository) : IQueryHandler<GetProductByIdQuery, GetProductByIdResult>
+    internal sealed class GetProductByIdQueryHandler(IProductRepository repository) : IQueryHandler<GetProductByIdQuery, GetProductByIdResult>
     {
         public async Task<GetProductByIdResult> Handle(GetProductByIdQuery query, CancellationToken cancellationToken)
         {

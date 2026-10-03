@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Catalog.Application.Features.Products.EventHandlers
 {
-    public class ProductCreatedEventHandler(ILogger<ProductCreatedEventHandler> logger) : INotificationHandler<ProductCreatedEvent>
+    public sealed class ProductCreatedEventHandler(ILogger<ProductCreatedEventHandler> logger) : INotificationHandler<ProductCreatedEvent>
     {
         public Task Handle(ProductCreatedEvent notification, CancellationToken cancellationToken)
         {

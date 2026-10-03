@@ -18,7 +18,7 @@ namespace Basket.Application.Features.Baskets.CreateBasket
         }
     }
 
-    public class CreateBasketCommandHandler(IBasketRepository repository, ISender sender) : ICommandHandler<CreateBasketCommand, CreateBasketResult>
+    internal sealed class CreateBasketCommandHandler(IBasketRepository repository, ISender sender) : ICommandHandler<CreateBasketCommand, CreateBasketResult>
     {
         public async Task<CreateBasketResult> Handle(CreateBasketCommand command, CancellationToken cancellationToken)
         {
@@ -39,12 +39,11 @@ namespace Basket.Application.Features.Baskets.CreateBasket
                 // price and name are always resolved from catalog, never trusted from client input
                 var result = await sender.Send(new GetProductByIdQuery(item.ProductId), cancellationToken);
 
-                newBasket.AddItem(
-                    item.ProductId,
-                    item.Quantity,
-                    item.Color,
-                    result.Product.Price,
-                    result.Product.Name);
+                newBasket.AddItem(item.ProductId,
+                                  item.Quantity,
+                                  item.Color,
+                                  result.Product.Price,
+                                  result.Product.Name);
             }
 
             return newBasket;

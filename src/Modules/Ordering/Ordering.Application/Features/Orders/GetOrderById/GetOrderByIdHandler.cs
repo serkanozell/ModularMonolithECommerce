@@ -4,7 +4,7 @@ namespace Ordering.Application.Features.Orders.GetOrderById
 
     public record GetOrderByIdResult(OrderDto Order);
 
-    public class GetOrderByIdQueryHandler(IOrderRepository repository) : IQueryHandler<GetOrderByIdQuery, GetOrderByIdResult>
+    internal sealed class GetOrderByIdQueryHandler(IOrderRepository repository) : IQueryHandler<GetOrderByIdQuery, GetOrderByIdResult>
     {
         public async Task<GetOrderByIdResult> Handle(GetOrderByIdQuery query, CancellationToken cancellationToken)
         {

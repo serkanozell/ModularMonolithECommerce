@@ -4,7 +4,7 @@ namespace Catalog.Application.Features.Products.GetProducts
 
     public record GetProductsResult(PaginatedResult<ProductDto> Products);
 
-    public class GetProductsQueryHandler(IProductRepository repository) : IQueryHandler<GetProductsQuery, GetProductsResult>
+    internal sealed class GetProductsQueryHandler(IProductRepository repository) : IQueryHandler<GetProductsQuery, GetProductsResult>
     {
         private const int MaxPageSize = 100;
 

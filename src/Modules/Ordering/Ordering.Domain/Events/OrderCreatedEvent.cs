@@ -1,4 +1,6 @@
+using Ordering.Domain.Entities;
+
 namespace Ordering.Domain.Events
 {
-    public record OrderCreatedEvent(Guid OrderId, Guid CustomerId, string OrderName) : IDomainEvent;
+    public record OrderCreatedEvent(Order Order) : IDomainEvent;
 }

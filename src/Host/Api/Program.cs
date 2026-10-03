@@ -2,6 +2,8 @@ using BuildingBlocks.Messaging.Extensions;
 using BuildingBlocks.Shared.Caching;
 using BuildingBlocks.Shared.Exceptions.Handler;
 using BuildingBlocks.Shared.Services;
+using Notification.Api;
+using Notification.Application;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,12 +16,13 @@ builder.Host.UseSerilog((context, configuration) =>
 var catalogAssembly = CatalogApplicationAssembly.Instance;
 var basketAssembly = BasketApplicationAssembly.Instance;
 var orderingAssembly = OrderingApplicationAssembly.Instance;
+var notificationAssembly = NotificationApplicationAssembly.Instance;
 
 
 // extensiona taşınıp birbiri ile ilişkili şeyler methodlara bölünecek
 
-builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly);
-builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly);
+builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly);
+builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly);
 
 builder.Services.AddOptions<RedisOptions>()
                 .Bind(builder.Configuration.GetSection("RedisOptions"))
@@ -37,7 +40,7 @@ builder.Services.AddStackExchangeRedisCache(options =>
 });
 
 // Must be registered after MediatR so that TransactionBehavior runs innermost
-builder.Services.AddMessaging(builder.Configuration, catalogAssembly, basketAssembly, orderingAssembly);
+builder.Services.AddMessaging(builder.Configuration, catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly);
 
 builder.Services.AddKeycloakWebApiAuthentication(builder.Configuration, "Keycloak");
 
@@ -49,7 +52,8 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCatalogModule(builder.Configuration)
                 .AddBasketModule(builder.Configuration)
-                .AddOrderingModule(builder.Configuration);
+                .AddOrderingModule(builder.Configuration)
+                .AddNotificationModule(builder.Configuration);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
@@ -79,6 +83,7 @@ app.UseMessaging();
 
 app.UseCatalogModule()
    .UseBasketModule()
-   .UseOrderingModule();
+   .UseOrderingModule()
+   .UseNotificationModule();
 
 app.Run();

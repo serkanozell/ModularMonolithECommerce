@@ -7,8 +7,7 @@ namespace Basket.Application.Features.Baskets.GetBasketByUserName
 
     public record GetBasketByUserNameResult(BasketDto Basket);
 
-    public class GetBasketByUserNameQueryHandler(IBasketRepository repository)
-        : IQueryHandler<GetBasketByUserNameQuery, GetBasketByUserNameResult>
+    internal sealed class GetBasketByUserNameQueryHandler(IBasketRepository repository) : IQueryHandler<GetBasketByUserNameQuery, GetBasketByUserNameResult>
     {
         public async Task<GetBasketByUserNameResult> Handle(GetBasketByUserNameQuery query, CancellationToken cancellationToken)
         {

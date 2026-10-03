@@ -39,7 +39,7 @@ namespace Ordering.Application.Features.Orders.CreateOrder
         }
     }
 
-    public class CreateOrderCommandHandler(IOrderRepository repository, ISender sender) : ICommandHandler<CreateOrderCommand, CreateOrderResult>
+    internal sealed class CreateOrderCommandHandler(IOrderRepository repository, ISender sender) : ICommandHandler<CreateOrderCommand, CreateOrderResult>
     {
         public async Task<CreateOrderResult> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
         {

@@ -35,7 +35,7 @@
 
             var order = new Order(customerId, shippingAddress, billingAddress, payment);
 
-            order.AddDomainEvent(new OrderCreatedEvent(order.Id, order.CustomerId, order.OrderName));
+            order.AddDomainEvent(new OrderCreatedEvent(order));
 
             return order;
         }

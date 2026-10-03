@@ -9,12 +9,12 @@ namespace Basket.Application.Features.Baskets.DeleteBasket
         public DeleteBasketCommandValidator()
         {
             RuleFor(x => x.UserName)
-                .NotEmpty().WithMessage("UserName is required.");
+                .NotEmpty()
+                .WithMessage("UserName is required.");
         }
     }
 
-    public class DeleteBasketCommandHandler(IBasketRepository repository)
-        : ICommandHandler<DeleteBasketCommand, DeleteBasketResult>
+    internal sealed class DeleteBasketCommandHandler(IBasketRepository repository) : ICommandHandler<DeleteBasketCommand, DeleteBasketResult>
     {
         public async Task<DeleteBasketResult> Handle(DeleteBasketCommand command, CancellationToken cancellationToken)
         {

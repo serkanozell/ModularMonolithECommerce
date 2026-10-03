@@ -1,0 +1,11 @@
+global using BuildingBlocks.Shared.CQRS;
+global using Carter;
+global using FluentValidation;
+global using MediatR;
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Http;
+global using Microsoft.AspNetCore.Routing;
+global using Notification.Application.Abstractions;
+global using Notification.Domain.Entities;
+global using Notification.Domain.Enums;
+global using Notification.Domain.Repositories;

@@ -13,7 +13,7 @@ namespace Ordering.Application.Features.Orders.DeleteOrder
         }
     }
 
-    public class DeleteOrderCommandHandler(IOrderRepository repository) : ICommandHandler<DeleteOrderCommand, DeleteOrderResult>
+    internal sealed class DeleteOrderCommandHandler(IOrderRepository repository) : ICommandHandler<DeleteOrderCommand, DeleteOrderResult>
     {
         public async Task<DeleteOrderResult> Handle(DeleteOrderCommand command, CancellationToken cancellationToken)
         {

@@ -3,7 +3,7 @@
     public record GetProductByCategoryQuery(string Category) : IQuery<GetProductByCategoryResult>;
     public record GetProductByCategoryResult(IEnumerable<ProductDto> Products);
 
-    internal class GetProductByCategoryHandler(IProductRepository productRepository) : IQueryHandler<GetProductByCategoryQuery, GetProductByCategoryResult>
+    internal sealed class GetProductByCategoryHandler(IProductRepository productRepository) : IQueryHandler<GetProductByCategoryQuery, GetProductByCategoryResult>
     {
         public async Task<GetProductByCategoryResult> Handle(GetProductByCategoryQuery query, CancellationToken cancellationToken)
         {

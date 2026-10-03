@@ -14,7 +14,7 @@ namespace Catalog.Application.Features.Products.DeleteProduct
         }
     }
 
-    public class DeleteProductCommandHandler(IProductRepository repository) : ICommandHandler<DeleteProductCommand, DeleteProductResult>
+    internal sealed class DeleteProductCommandHandler(IProductRepository repository) : ICommandHandler<DeleteProductCommand, DeleteProductResult>
     {
         public async Task<DeleteProductResult> Handle(DeleteProductCommand command, CancellationToken cancellationToken)
         {

@@ -4,7 +4,7 @@ namespace Ordering.Application.Features.Orders.GetOrders
 
     public record GetOrdersResult(PaginatedResult<OrderDto> Orders);
 
-    public class GetOrdersQueryHandler(IOrderRepository repository) : IQueryHandler<GetOrdersQuery, GetOrdersResult>
+    internal sealed class GetOrdersQueryHandler(IOrderRepository repository) : IQueryHandler<GetOrdersQuery, GetOrdersResult>
     {
         private const int MaxPageSize = 100;
 

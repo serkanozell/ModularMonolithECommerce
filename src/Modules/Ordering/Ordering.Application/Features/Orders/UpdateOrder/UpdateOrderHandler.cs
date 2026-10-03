@@ -36,7 +36,7 @@ namespace Ordering.Application.Features.Orders.UpdateOrder
         }
     }
 
-    public class UpdateOrderCommandHandler(IOrderRepository repository) : ICommandHandler<UpdateOrderCommand, UpdateOrderResult>
+    internal sealed class UpdateOrderCommandHandler(IOrderRepository repository) : ICommandHandler<UpdateOrderCommand, UpdateOrderResult>
     {
         public async Task<UpdateOrderResult> Handle(UpdateOrderCommand command, CancellationToken cancellationToken)
         {

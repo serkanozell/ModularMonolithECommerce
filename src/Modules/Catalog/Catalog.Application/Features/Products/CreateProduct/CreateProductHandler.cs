@@ -30,7 +30,7 @@ namespace Catalog.Application.Features.Products.CreateProduct
         }
     }
 
-    public class CreateProductCommandHandler(IProductRepository repository) : ICommandHandler<CreateProductCommand, CreateProductResult>
+    internal sealed class CreateProductCommandHandler(IProductRepository repository) : ICommandHandler<CreateProductCommand, CreateProductResult>
     {
         public async Task<CreateProductResult> Handle(CreateProductCommand command, CancellationToken cancellationToken)
         {

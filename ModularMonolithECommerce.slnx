@@ -28,6 +28,13 @@
     <Project Path="src/Modules/Catalog/Catalog.Domain/Catalog.Domain.csproj" Id="fe791eb5-9294-4fc7-b317-92b5a69fb41c" />
     <Project Path="src/Modules/Catalog/Catalog.Infrastructure/Catalog.Infrastructure.csproj" Id="33a26dd3-3d64-4f72-97f7-3eb216ac8855" />
   </Folder>
+  <Folder Name="/src/Modules/Notification/">
+    <Project Path="src/Modules/Notification/Notification.Api/Notification.Api.csproj" />
+    <Project Path="src/Modules/Notification/Notification.Application/Notification.Application.csproj" />
+    <Project Path="src/Modules/Notification/Notification.Contracts/Notification.Contracts.csproj" />
+    <Project Path="src/Modules/Notification/Notification.Domain/Notification.Domain.csproj" />
+    <Project Path="src/Modules/Notification/Notification.Infrastructure/Notification.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Ordering/">
     <Project Path="src/Modules/Ordering/Ordering.Api/Ordering.Api.csproj" />
     <Project Path="src/Modules/Ordering/Ordering.Application/Ordering.Application.csproj" Id="0155fd18-8619-4b76-a035-3c9544fd7e8b" />
