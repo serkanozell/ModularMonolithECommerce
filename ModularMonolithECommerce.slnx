@@ -28,6 +28,13 @@
     <Project Path="src/Modules/Catalog/Catalog.Domain/Catalog.Domain.csproj" Id="fe791eb5-9294-4fc7-b317-92b5a69fb41c" />
     <Project Path="src/Modules/Catalog/Catalog.Infrastructure/Catalog.Infrastructure.csproj" Id="33a26dd3-3d64-4f72-97f7-3eb216ac8855" />
   </Folder>
+  <Folder Name="/src/Modules/Inventory/">
+    <Project Path="src/Modules/Inventory/Inventory.Api/Inventory.Api.csproj" Id="ed2f8279-2d20-4e27-abc0-6b4f67196abd" />
+    <Project Path="src/Modules/Inventory/Inventory.Application/Inventory.Application.csproj" Id="4c2f897c-ad7d-4ab3-835d-1140a753e955" />
+    <Project Path="src/Modules/Inventory/Inventory.Contracts/Inventory.Contracts.csproj" Id="3f129b7d-82de-418b-9d1b-5342fc638854" />
+    <Project Path="src/Modules/Inventory/Inventory.Domain/Inventory.Domain.csproj" Id="0c7f5ff8-1897-44f8-a31c-976a84f8a160" />
+    <Project Path="src/Modules/Inventory/Inventory.Infrastructure/Inventory.Infrastructure.csproj" Id="f78ca6dc-ff06-4d01-b7ff-cd7f6dca4ef0" />
+  </Folder>
   <Folder Name="/src/Modules/Notification/">
     <Project Path="src/Modules/Notification/Notification.Api/Notification.Api.csproj" />
     <Project Path="src/Modules/Notification/Notification.Application/Notification.Application.csproj" />

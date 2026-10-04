@@ -54,11 +54,11 @@ namespace BuildingBlocks.Messaging.Extensions
 
                 config.AddConsumers(consumerAssemblies);
 
-                //config.AddSagaStateMachines(consumerAssemblies);
+                config.AddSagaStateMachines(consumerAssemblies);
 
-                //config.AddSagas(consumerAssemblies);
+                config.AddSagas(consumerAssemblies);
 
-                //config.AddActivities(consumerAssemblies);
+                config.AddActivities(consumerAssemblies);
 
                 config.AddEntityFrameworkOutbox<MessagingDbContext>(outbox =>
                 {
