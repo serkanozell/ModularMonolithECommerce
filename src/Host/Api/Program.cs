@@ -17,12 +17,13 @@ var catalogAssembly = CatalogApplicationAssembly.Instance;
 var basketAssembly = BasketApplicationAssembly.Instance;
 var orderingAssembly = OrderingApplicationAssembly.Instance;
 var notificationAssembly = NotificationApplicationAssembly.Instance;
+var inventoryAssembly = InventoryApplicationAssembly.Instance;
 
 
 // extensiona taşınıp birbiri ile ilişkili şeyler methodlara bölünecek
 
-builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly);
-builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly);
+builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly, inventoryAssembly);
+builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly, inventoryAssembly);
 
 builder.Services.AddOptions<RedisOptions>()
                 .Bind(builder.Configuration.GetSection("RedisOptions"))
@@ -53,7 +54,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddCatalogModule(builder.Configuration)
                 .AddBasketModule(builder.Configuration)
                 .AddOrderingModule(builder.Configuration)
-                .AddNotificationModule(builder.Configuration);
+                .AddNotificationModule(builder.Configuration)
+                .AddInventoryModule(builder.Configuration);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
@@ -84,6 +86,7 @@ app.UseMessaging();
 app.UseCatalogModule()
    .UseBasketModule()
    .UseOrderingModule()
-   .UseNotificationModule();
+   .UseNotificationModule()
+   .UseInventoryModule();
 
 app.Run();

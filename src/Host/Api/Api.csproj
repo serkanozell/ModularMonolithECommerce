@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\Modules\Basket\Basket.Api\Basket.Api.csproj" />
     <ProjectReference Include="..\..\Modules\Ordering\Ordering.Api\Ordering.Api.csproj" />
     <ProjectReference Include="..\..\Modules\Notification\Notification.Api\Notification.Api.csproj" />
+    <ProjectReference Include="..\..\Modules\Inventory\Inventory.Api\Inventory.Api.csproj" />
   </ItemGroup>
 
 </Project>

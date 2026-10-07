@@ -22,7 +22,7 @@ namespace Catalog.Infrastructure.Repositories
             await ActiveProducts()
                   .AsNoTracking()
                   .OrderByDescending(p => p.CreatedAt)
-                  .Skip((pageNumber) * pageSize)
+                  .Skip(pageNumber * pageSize)
                   .Take(pageSize)
                   .ToListAsync(cancellationToken);
 
