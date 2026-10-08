@@ -12,7 +12,8 @@ namespace Ordering.Application.Features.Orders
                 order.BillingAddress.ToDto(),
                 order.Payment.ToDto(),
                 order.TotalPrice,
-                order.Items.Select(i => i.ToDto()).ToList());
+                order.Items.Select(i => i.ToDto()).ToList(),
+                order.OrderStatus);
 
         public static List<OrderDto> ToDtoList(this IEnumerable<Order> orders) =>
             orders.Select(o => o.ToDto()).ToList();

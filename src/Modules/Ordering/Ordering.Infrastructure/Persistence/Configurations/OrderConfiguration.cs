@@ -17,6 +17,11 @@ namespace Ordering.Infrastructure.Persistence.Configurations
                    .IsRequired()
                    .HasMaxLength(100);
 
+            builder.Property(x => x.OrderStatus)
+                   .IsRequired()
+                   .HasConversion<string>()
+                   .HasMaxLength(20);
+
             builder.ComplexProperty(x => x.ShippingAddress, ConfigureAddress);
 
             builder.ComplexProperty(x => x.BillingAddress, ConfigureAddress);

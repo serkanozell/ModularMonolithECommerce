@@ -9,6 +9,7 @@ namespace Catalog.Domain.Entities
         public string? Description { get; private set; } = default!;
         public decimal Price { get; private set; }
         public int StockQuantity { get; private set; }
+        public bool IsInStock { get; set; }
 
         private Product()
         {
@@ -76,21 +77,11 @@ namespace Catalog.Domain.Entities
             Category = category;
         }
 
-        public void IncreaseStock(int quantity)
+        public void UpdateStockQuantity(bool isInStock, int quantity)
         {
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-
-            StockQuantity += quantity;
-        }
-
-        public void DecreaseStock(int quantity)
-        {
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-
-            if (StockQuantity < quantity)
-                throw new InvalidOperationException("Insufficient stock.");
-
-            StockQuantity -= quantity;
+            ArgumentOutOfRangeException.ThrowIfNegative(quantity);
+            IsInStock = isInStock;
+            StockQuantity = quantity;
         }
 
         public void Activate()

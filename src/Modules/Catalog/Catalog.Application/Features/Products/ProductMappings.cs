@@ -9,6 +9,7 @@ namespace Catalog.Application.Features.Products
                 product.Description,
                 product.Price,
                 product.StockQuantity,
+                product.IsInStock,
                 product.IsActive,
                 product.CreatedAt,
                 product.UpdatedAt);

@@ -2,8 +2,10 @@
 {
     public enum StockReservationStatus
     {
+        Pending,
         Reserved,
+        Confirmed,
         Released,
-        Confirmed
+        Failed
     }
 }

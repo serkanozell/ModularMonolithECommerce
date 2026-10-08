@@ -13,6 +13,8 @@ namespace Inventory.Infrastructure.Configuration
                    .IsRequired();
 
             builder.Property(reservation => reservation.Status)
+                   .HasConversion<string>()
+                   .HasMaxLength(50)
                    .IsRequired();
 
             builder.HasIndex(reservation => new { reservation.InventoryItemId, reservation.OrderId })

@@ -6,6 +6,7 @@ namespace Catalog.Contracts.Features.Products
                              string? Description,
                              decimal Price,
                              int StockQuantity,
+                             bool IsInStock,
                              bool IsActive,
                              DateTime? CreatedAt,
                              DateTime? UpdatedAt);

@@ -1,5 +1,4 @@
 using BuildingBlocks.Shared.Dtos;
-using Catalog.Contracts.Features.Products.GetProductById;
 
 namespace Ordering.Application.Features.Orders.CreateOrder
 {
@@ -39,7 +38,7 @@ namespace Ordering.Application.Features.Orders.CreateOrder
         }
     }
 
-    internal sealed class CreateOrderCommandHandler(IOrderRepository repository, ISender sender) : ICommandHandler<CreateOrderCommand, CreateOrderResult>
+    internal sealed class CreateOrderCommandHandler(IOrderRepository repository) : ICommandHandler<CreateOrderCommand, CreateOrderResult>
     {
         public async Task<CreateOrderResult> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
         {
@@ -52,9 +51,7 @@ namespace Ordering.Application.Features.Orders.CreateOrder
 
             foreach (var item in command.Items)
             {
-                var product = await sender.Send(new GetProductByIdQuery(item.ProductId), cancellationToken);
-
-                order.Add(item.ProductId, item.Quantity, product.Product.Price);
+                order.Add(item.ProductId, item.Quantity, item.Price);
             }
 
             repository.Add(order);

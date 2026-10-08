@@ -1,4 +1,6 @@
-﻿namespace Ordering.Domain.Entities
+﻿using Ordering.Domain.Enums;
+
+namespace Ordering.Domain.Entities
 {
     public class Order : Aggregate<Guid>
     {
@@ -7,10 +9,12 @@
 
         public Guid CustomerId { get; private set; } = default!;
         public string OrderName { get; private set; } = default!;
+        public OrderStatus OrderStatus { get; private set; }
         public Address ShippingAddress { get; private set; } = default!;
         public Address BillingAddress { get; private set; } = default!;
         public Payment Payment { get; private set; } = default!;
         public decimal TotalPrice => Items.Sum(x => x.Price * x.Quantity);
+
 
         private Order() { }
 
@@ -18,7 +22,8 @@
         {
             Id = Guid.NewGuid();
             CustomerId = customerId;
-            OrderName = Guid.NewGuid().ToString();
+            OrderName = "ORD-" + DateTime.UtcNow + "-" + Guid.NewGuid().ToString()[..8].ToUpperInvariant().Substring(0, 8);
+            OrderStatus = OrderStatus.Pending;
             ShippingAddress = shippingAddress;
             BillingAddress = billingAddress;
             Payment = payment;
@@ -90,6 +95,17 @@
         {
             IsActive = false;
             IsDeleted = true;
+            ChangeStatus(OrderStatus.Cancelled);
+        }
+
+        public void ChangeStatus(OrderStatus status)
+        {
+            if (!Enum.IsDefined(status))
+            {
+                throw new ArgumentOutOfRangeException(nameof(status));
+            }
+
+            OrderStatus = status;
         }
     }
 }

@@ -1,4 +1,5 @@
 using BuildingBlocks.Shared.Dtos;
+using Ordering.Domain.Enums;
 
 namespace Ordering.Application.Features.Orders
 {
@@ -23,5 +24,6 @@ namespace Ordering.Application.Features.Orders
                            AddressDto BillingAddress,
                            PaymentDto Payment,
                            decimal TotalPrice,
-                           List<OrderItemDto> Items);
+                           List<OrderItemDto> Items,
+                           OrderStatus OrderStatus);
 }

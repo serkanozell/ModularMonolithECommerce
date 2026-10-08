@@ -1,10 +1,10 @@
 namespace Catalog.Application.Features.Products.UpdateProduct
 {
     public record UpdateProductCommand(Guid Id,
-                                       string Name,
-                                       List<string> Category,
-                                       string? Description,
-                                       decimal Price) : ICommand<UpdateProductResult>;
+                                   string Name,
+                                   List<string> Category,
+                                   string? Description,
+                                   decimal Price) : ICommand<UpdateProductResult>;
 
     public record UpdateProductResult(bool IsSuccess);
 
