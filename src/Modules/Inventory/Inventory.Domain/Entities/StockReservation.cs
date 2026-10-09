@@ -1,17 +1,18 @@
 using Inventory.Domain.Enums;
+using Inventory.Domain.ValueObjects;
 
 namespace Inventory.Domain.Entities
 {
     public sealed class StockReservation : Entity<Guid>
     {
-        public Guid InventoryItemId { get; private set; }
-        public Guid OrderId { get; private set; }
-        public int Quantity { get; private set; }
+        public InventoryItemId InventoryItemId { get; private set; }
+        public OrderId OrderId { get; private set; }
+        public Quantity Quantity { get; private set; }
         public StockReservationStatus Status { get; private set; }
 
         private StockReservation() { }
 
-        private StockReservation(Guid inventoryItemId, Guid orderId, int quantity)
+        private StockReservation(InventoryItemId inventoryItemId, OrderId orderId, Quantity quantity)
         {
             InventoryItemId = inventoryItemId;
             OrderId = orderId;
@@ -21,11 +22,11 @@ namespace Inventory.Domain.Entities
             IsDeleted = false;
         }
 
-        internal static StockReservation Create(Guid inventoryItemId, Guid orderId, int quantity)
+        internal static StockReservation Create(InventoryItemId inventoryItemId, OrderId orderId, Quantity quantity)
         {
-            ArgumentOutOfRangeException.ThrowIfEqual(inventoryItemId, Guid.Empty);
-            ArgumentOutOfRangeException.ThrowIfEqual(orderId, Guid.Empty);
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
+            ArgumentNullException.ThrowIfNull(inventoryItemId);
+            ArgumentNullException.ThrowIfNull(orderId);
+            ArgumentNullException.ThrowIfNull(quantity);
 
             return new StockReservation(inventoryItemId, orderId, quantity);
         }

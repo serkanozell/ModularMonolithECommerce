@@ -13,15 +13,15 @@ namespace Ordering.Application.Features.Orders.EventHandlers
 
             logger.LogInformation("Domain event handled: {DomainEvent} - OrderId: {OrderId}, CustomerId: {CustomerId}, OrderName: {OrderName}",
                                   notification.GetType().Name,
-                                  order.Id,
-                                  order.CustomerId,
-                                  order.OrderName);
+                                  order.Id.Value,
+                                  order.CustomerId.Value,
+                                  order.OrderName.Value);
 
             var orderCreatedIntegrationEvent = new OrderCreatedIntegrationEvent
             {
-                OrderId = order.Id,
-                CustomerId = order.CustomerId,
-                OrderName = order.OrderName,
+                OrderId = order.Id.Value,
+                CustomerId = order.CustomerId.Value,
+                OrderName = order.OrderName.Value,
                 CustomerFirstName = order.ShippingAddress.FirstName,
                 CustomerLastName = order.ShippingAddress.LastName,
                 CustomerEmail = order.ShippingAddress.EmailAddress,

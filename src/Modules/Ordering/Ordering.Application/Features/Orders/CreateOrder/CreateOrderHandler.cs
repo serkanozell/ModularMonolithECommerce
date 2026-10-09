@@ -42,7 +42,7 @@ namespace Ordering.Application.Features.Orders.CreateOrder
     {
         public async Task<CreateOrderResult> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
         {
-            var order = Order.Create(command.CustomerId,
+            var order = Order.Create(CustomerId.Of(command.CustomerId),
                                      command.ShippingAddress.ToValueObject(),
                                      command.BillingAddress.ToValueObject(),
                                      command.Payment.ToValueObject());
@@ -58,7 +58,7 @@ namespace Ordering.Application.Features.Orders.CreateOrder
 
             await repository.SaveChangesAsync(cancellationToken);
 
-            return new CreateOrderResult(order.Id);
+            return new CreateOrderResult(order.Id.Value);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Basket.Application.Features.Baskets.CheckoutBasket
                 ?? throw new BasketNotFoundException(checkout.UserName);
 
             // Prices are re-validated against catalog so that the order is always created with current prices
-            foreach (var productId in basket.Items.Select(i => i.ProductId).Distinct().ToList())
+            foreach (var productId in basket.Items.Select(i => i.ProductId.Value).Distinct().ToList())
             {
                 var result = await sender.Send(new GetProductByIdQuery(productId), cancellationToken);
 
@@ -56,7 +56,7 @@ namespace Basket.Application.Features.Baskets.CheckoutBasket
                 Expiration = checkout.Expiration,
                 Cvv = checkout.Cvv,
                 PaymentMethod = checkout.PaymentMethod,
-                OrderItems = basket.Items.Select(i => new OrderItemDto(i.ProductId, i.Quantity, i.Price)).ToList()
+                OrderItems = basket.Items.Select(i => new OrderItemDto(i.ProductId.Value, i.Quantity.Value, i.Price.Value)).ToList()
             };
 
             // Written to messaging.OutboxMessage via MassTransit bus outbox

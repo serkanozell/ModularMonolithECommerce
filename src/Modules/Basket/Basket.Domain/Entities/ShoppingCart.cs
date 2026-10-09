@@ -1,84 +1,88 @@
 ﻿using Basket.Domain.Events;
+using Basket.Domain.ValueObjects;
 
 namespace Basket.Domain.Entities
 {
-    public class ShoppingCart : Aggregate<Guid>
+    public class ShoppingCart : Aggregate<ShoppingCartId>
     {
-        public string UserName { get; private set; } = default!;
+        public UserName UserName { get; private set; } = default!;
 
         private readonly List<ShoppingCartItem> _items = new();
         public IReadOnlyList<ShoppingCartItem> Items => _items.AsReadOnly();
 
-        public decimal TotalPrice => _items.Sum(i => i.Price * i.Quantity);
+        public decimal TotalPrice => _items.Sum(i => i.Price.Value * i.Quantity.Value);
 
-        private ShoppingCart(string userName)
+        private ShoppingCart(UserName userName)
         {
-            Id = Guid.NewGuid();
+            Id = ShoppingCartId.Of(Guid.NewGuid());
             UserName = userName;
             IsActive = true;
             IsDeleted = false;
         }
 
-        public static ShoppingCart Create(string userName)
+        public static ShoppingCart Create(UserName userName)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(userName);
+            ArgumentNullException.ThrowIfNull(userName);
 
             var cart = new ShoppingCart(userName);
 
-            cart.AddDomainEvent(new BasketCreatedEvent(cart.Id, cart.UserName));
+            cart.AddDomainEvent(new BasketCreatedEvent(cart.Id.Value, cart.UserName.Value));
 
             return cart;
         }
 
         public void AddItem(Guid productId, int quantity, string color, decimal price, string productName)
         {
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-            ArgumentOutOfRangeException.ThrowIfNegative(price);
-            ArgumentException.ThrowIfNullOrWhiteSpace(color);
-            ArgumentException.ThrowIfNullOrWhiteSpace(productName);
+            var productIdValueObject = ProductId.Of(productId);
+            var quantityValueObject = Quantity.Of(quantity);
+            var colorValueObject = Color.Of(color);
+            var priceValueObject = Price.Of(price);
+            var productNameValueObject = ProductName.Of(productName);
 
-            var existingItem = _items.FirstOrDefault(i => i.ProductId == productId && i.Color == color);
+            var existingItem = _items.FirstOrDefault(i => i.ProductId == productIdValueObject && i.Color == colorValueObject);
 
             if (existingItem is not null)
-                existingItem.Quantity += quantity;
+                existingItem.IncreaseQuantity(quantityValueObject);
             else
-                _items.Add(new ShoppingCartItem(Id, productId, quantity, color, price, productName));
+                _items.Add(new ShoppingCartItem(Id, productIdValueObject, quantityValueObject, colorValueObject, priceValueObject, productNameValueObject));
 
-            AddDomainEvent(new BasketItemAddedEvent(Id, productId, quantity, price, productName));
+            AddDomainEvent(new BasketItemAddedEvent(Id.Value, productIdValueObject.Value, quantityValueObject.Value, priceValueObject.Value, productNameValueObject.Value));
         }
 
         public void RemoveItem(Guid productId)
         {
-            var item = _items.FirstOrDefault(i => i.ProductId == productId);
+            var item = _items.FirstOrDefault(i => i.ProductId.Value == productId);
 
             if (item is null)
                 throw new InvalidOperationException($"Product '{productId}' is not in the cart.");
 
             _items.Remove(item);
 
-            AddDomainEvent(new BasketItemRemovedEvent(Id, productId));
+            AddDomainEvent(new BasketItemRemovedEvent(Id.Value, productId));
         }
 
         public void UpdateItemQuantity(Guid productId, int quantity)
         {
             ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
 
-            var item = _items.FirstOrDefault(i => i.ProductId == productId);
+            var item = _items.FirstOrDefault(i => i.ProductId.Value == productId);
 
             if (item is null)
                 throw new InvalidOperationException($"Product '{productId}' is not in the cart.");
 
-            if (item.Quantity == quantity)
+            var quantityValueObject = Quantity.Of(quantity);
+
+            if (item.Quantity == quantityValueObject)
                 return;
 
-            item.Quantity = quantity;
+            item.SetQuantity(quantityValueObject);
         }
 
         public bool UpdateItemPrice(Guid productId, decimal newPrice, DateTime priceChangedAtUtc)
         {
             var updated = false;
 
-            foreach (var item in _items.Where(i => i.ProductId == productId))
+            foreach (var item in _items.Where(i => i.ProductId.Value == productId))
                 updated |= item.UpdatePrice(newPrice, priceChangedAtUtc);
 
             return updated;

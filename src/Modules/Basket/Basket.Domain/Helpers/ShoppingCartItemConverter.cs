@@ -26,13 +26,13 @@ namespace Basket.Domain.Helpers
         {
             writer.WriteStartObject();
 
-            writer.WriteString("id", value.Id.ToString());
-            writer.WriteString("shoppingCartId", value.ShoppingCartId.ToString());
-            writer.WriteString("productId", value.ProductId.ToString());
-            writer.WriteNumber("quantity", value.Quantity);
-            writer.WriteString("color", value.Color);
-            writer.WriteNumber("price", value.Price);
-            writer.WriteString("productName", value.ProductName);
+            writer.WriteString("id", value.Id.Value.ToString());
+            writer.WriteString("shoppingCartId", value.ShoppingCartId.Value.ToString());
+            writer.WriteString("productId", value.ProductId.Value.ToString());
+            writer.WriteNumber("quantity", value.Quantity.Value);
+            writer.WriteString("color", value.Color.Value);
+            writer.WriteNumber("price", value.Price.Value);
+            writer.WriteString("productName", value.ProductName.Value);
 
             writer.WriteEndObject();
         }

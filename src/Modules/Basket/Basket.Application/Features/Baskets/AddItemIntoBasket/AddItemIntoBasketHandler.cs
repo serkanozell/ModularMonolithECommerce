@@ -36,7 +36,7 @@ namespace Basket.Application.Features.Baskets.AddItemIntoBasket
 
             await repository.SaveChangesAsync(command.UserName, cancellationToken);
 
-            return new AddItemIntoBasketResult(shoppingCart.Id);
+            return new AddItemIntoBasketResult(shoppingCart.Id.Value);
         }
     }
 }

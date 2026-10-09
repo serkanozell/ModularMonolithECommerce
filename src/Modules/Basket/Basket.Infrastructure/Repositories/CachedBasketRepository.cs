@@ -31,7 +31,7 @@ namespace Basket.Infrastructure.Repositories
         {
             await repository.CreateBasket(basket, cancellationToken);
 
-            await cache.SetStringAsync(BasketKey(basket.UserName), JsonSerializer.Serialize(basket, jsonSerializerOptions), cacheEntryOptions, cancellationToken);
+            await cache.SetStringAsync(BasketKey(basket.UserName.Value), JsonSerializer.Serialize(basket, jsonSerializerOptions), cacheEntryOptions, cancellationToken);
 
             return basket;
         }
@@ -75,7 +75,7 @@ namespace Basket.Infrastructure.Repositories
             var result = await repository.UpdateBaskets(basketList, cancellationToken);
 
             foreach (var basket in basketList)
-                await cache.RemoveAsync(BasketKey(basket.UserName), cancellationToken);
+                await cache.RemoveAsync(BasketKey(basket.UserName.Value), cancellationToken);
 
             return result;
         }

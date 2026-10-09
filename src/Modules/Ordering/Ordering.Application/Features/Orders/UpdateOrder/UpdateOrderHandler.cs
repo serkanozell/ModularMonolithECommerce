@@ -43,7 +43,7 @@ namespace Ordering.Application.Features.Orders.UpdateOrder
             var order = await repository.GetByIdAsync(command.Id, cancellationToken)
                 ?? throw new KeyNotFoundException($"Order with id '{command.Id}' was not found.");
 
-            order.Update(command.OrderName,
+            order.Update(OrderName.Of(command.OrderName),
                          command.ShippingAddress.ToValueObject(),
                          command.BillingAddress.ToValueObject(),
                          command.Payment.ToValueObject());

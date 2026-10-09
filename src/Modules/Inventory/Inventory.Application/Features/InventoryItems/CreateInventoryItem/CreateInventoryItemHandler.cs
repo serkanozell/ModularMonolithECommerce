@@ -20,11 +20,11 @@ namespace Inventory.Application.Features.InventoryItems.CreateInventoryItem
             if (await repository.GetByProductIdAsync(command.ProductId, cancellationToken) is not null)
                 throw new InvalidOperationException($"Inventory already exists for product '{command.ProductId}'.");
 
-            var item = InventoryItem.Create(command.ProductId, command.InitialQuantity);
+            var item = InventoryItem.Create(ProductId.Of(command.ProductId), command.InitialQuantity);
             repository.Add(item);
             await repository.SaveChangesAsync(cancellationToken);
 
-            return new CreateInventoryItemResult(item.Id);
+            return new CreateInventoryItemResult(item.Id.Value);
         }
     }
 }

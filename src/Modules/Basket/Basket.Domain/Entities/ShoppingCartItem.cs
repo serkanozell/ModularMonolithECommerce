@@ -1,24 +1,25 @@
 ﻿using System.Text.Json.Serialization;
+using Basket.Domain.ValueObjects;
 
 namespace Basket.Domain.Entities
 {
-    public class ShoppingCartItem : Entity<Guid>
+    public class ShoppingCartItem : Entity<ShoppingCartItemId>
     {
-        public Guid ShoppingCartId { get; private set; } = default!;
-        public Guid ProductId { get; private set; } = default!;
-        public int Quantity { get; internal set; } = default!;
-        public string Color { get; private set; } = default!;
-        public decimal Price { get; private set; } = default!;
-        public string ProductName { get; private set; } = default!;
+        public ShoppingCartId ShoppingCartId { get; private set; } = default!;
+        public ProductId ProductId { get; private set; } = default!;
+        public Quantity Quantity { get; private set; } = default!;
+        public Color Color { get; private set; } = default!;
+        public Price Price { get; private set; } = default!;
+        public ProductName ProductName { get; private set; } = default!;
         public DateTime PriceUpdatedAtUtc { get; private set; }
 
         private ShoppingCartItem()
         {
         }
 
-        internal ShoppingCartItem(Guid shoppingCartId, Guid productId, int quantity, string color, decimal price, string productName)
+        internal ShoppingCartItem(ShoppingCartId shoppingCartId, ProductId productId, Quantity quantity, Color color, Price price, ProductName productName)
         {
-            Id = Guid.NewGuid();
+            Id = ShoppingCartItemId.Of(Guid.NewGuid());
             ShoppingCartId = shoppingCartId;
             ProductId = productId;
             Quantity = quantity;
@@ -33,13 +34,13 @@ namespace Basket.Domain.Entities
         [JsonConstructor]
         public ShoppingCartItem(Guid id, Guid shoppingCartId, Guid productId, int quantity, string color, decimal price, string productName)
         {
-            Id = id;
-            ShoppingCartId = shoppingCartId;
-            ProductId = productId;
-            Quantity = quantity;
-            Color = color;
-            Price = price;
-            ProductName = productName;
+            Id = ShoppingCartItemId.Of(id);
+            ShoppingCartId = ShoppingCartId.Of(shoppingCartId);
+            ProductId = ProductId.Of(productId);
+            Quantity = Quantity.Of(quantity);
+            Color = Color.Of(color);
+            Price = Price.Of(price);
+            ProductName = ProductName.Of(productName);
             PriceUpdatedAtUtc = DateTime.UtcNow;
             IsActive = true;
             IsDeleted = false;
@@ -52,9 +53,20 @@ namespace Basket.Domain.Entities
             if (priceChangedAtUtc <= PriceUpdatedAtUtc)
                 return false;
 
-            Price = newPrice;
+            Price = Price.Of(newPrice);
             PriceUpdatedAtUtc = priceChangedAtUtc;
             return true;
+        }
+
+        internal void IncreaseQuantity(Quantity quantity)
+        {
+            Quantity = Quantity.Increase(quantity);
+        }
+
+        internal void SetQuantity(Quantity quantity)
+        {
+            ArgumentNullException.ThrowIfNull(quantity);
+            Quantity = quantity;
         }
     }
 }

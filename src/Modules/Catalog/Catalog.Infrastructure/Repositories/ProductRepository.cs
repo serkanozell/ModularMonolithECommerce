@@ -10,13 +10,16 @@ namespace Catalog.Infrastructure.Repositories
         public void Update(Product product) => context.Products.Update(product);
 
         public Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-            context.Products.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
+            context.Products.FirstOrDefaultAsync(p => p.Id == ProductId.Of(id) && !p.IsDeleted, cancellationToken);
 
-        public Task<bool> ExistsByNameAsync(string name, Guid? excludedId = null, CancellationToken cancellationToken = default) =>
-            context.Products
-                   .AsNoTracking()
-                   .Where(p => !p.IsDeleted)
-                   .AnyAsync(p => p.Name == name && (excludedId == null || p.Id != excludedId), cancellationToken);
+        public Task<bool> ExistsByNameAsync(string name, Guid? excludedId = null, CancellationToken cancellationToken = default)
+        {
+            var productId = excludedId.HasValue ? ProductId.Of(excludedId.Value) : null;
+
+            return context.Products.AsNoTracking()
+                                   .Where(p => !p.IsDeleted)
+                                   .AnyAsync(p => p.Name == ProductName.Of(name) && (productId == null || p.Id != productId), cancellationToken);
+        }
 
         public async Task<IReadOnlyList<Product>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default) =>
             await ActiveProducts()

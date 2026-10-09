@@ -3,13 +3,13 @@ namespace Catalog.Application.Features.Products
     public static class ProductMappings
     {
         public static ProductDto ToDto(this Product product) =>
-            new(product.Id,
-                product.Name,
+            new(product.Id.Value,
+                product.Name.Value,
                 product.Category,
-                product.Description,
-                product.Price,
-                product.StockQuantity,
-                product.IsInStock,
+                product.Description?.Value,
+                product.Price.Value,
+                product.StockAvailability.AvailableQuantity,
+                product.StockAvailability.IsInStock,
                 product.IsActive,
                 product.CreatedAt,
                 product.UpdatedAt);

@@ -6,9 +6,13 @@ namespace Inventory.Infrastructure.Configuration
         {
             //builder.ToTable("inventory_items");
 
+            builder.Property(item => item.Id)
+                   .HasConversion(id => id.Value, value => InventoryItemId.Of(value));
+
             builder.HasKey(item => item.Id);
 
             builder.Property(item => item.ProductId)
+                   .HasConversion(id => id.Value, value => ProductId.Of(value))
                    .IsRequired();
 
             builder.HasIndex(item => item.ProductId)

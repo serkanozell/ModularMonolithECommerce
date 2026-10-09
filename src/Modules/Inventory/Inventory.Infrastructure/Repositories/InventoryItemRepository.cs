@@ -10,15 +10,15 @@ namespace Inventory.Infrastructure.Repositories
         public void Update(InventoryItem item) => context.InventoryItems.Update(item);
 
         public async Task<InventoryItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-            await context.InventoryItems.FirstOrDefaultAsync(item => item.Id == id && !item.IsDeleted, cancellationToken);
+            await context.InventoryItems.FirstOrDefaultAsync(item => item.Id == InventoryItemId.Of(id) && !item.IsDeleted, cancellationToken);
 
         public async Task<InventoryItem?> GetByIdWithReservationsAsync(Guid id, Guid orderId, CancellationToken cancellationToken = default) =>
             await context.InventoryItems
-                .Include(item => item.Reservations.Where(reservation => reservation.OrderId == orderId && reservation.IsActive && !reservation.IsDeleted))
-                .FirstOrDefaultAsync(item => item.Id == id && !item.IsDeleted, cancellationToken);
+                .Include(item => item.Reservations.Where(reservation => reservation.OrderId == OrderId.Of(orderId) && reservation.IsActive && !reservation.IsDeleted))
+                .FirstOrDefaultAsync(item => item.Id == InventoryItemId.Of(id) && !item.IsDeleted, cancellationToken);
 
         public async Task<InventoryItem?> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken = default) =>
-            await context.InventoryItems.FirstOrDefaultAsync(item => item.ProductId == productId && !item.IsDeleted, cancellationToken);
+            await context.InventoryItems.FirstOrDefaultAsync(item => item.ProductId == ProductId.Of(productId) && !item.IsDeleted, cancellationToken);
 
         public async Task<IReadOnlyList<InventoryItem>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default) =>
             await ActiveItems()

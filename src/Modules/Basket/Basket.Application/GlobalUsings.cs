@@ -1,5 +1,6 @@
 global using Basket.Domain.Entities;
 global using Basket.Domain.Repositories;
+global using Basket.Domain.ValueObjects;
 global using BuildingBlocks.Shared.CQRS;
 global using Carter;
 global using Catalog.Contracts.Features.Products.GetProductById;

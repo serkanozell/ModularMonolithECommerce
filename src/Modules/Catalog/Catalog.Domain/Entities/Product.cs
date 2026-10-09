@@ -1,72 +1,75 @@
 using Catalog.Domain.Events;
+using Catalog.Domain.ValueObjects;
 
 namespace Catalog.Domain.Entities
 {
-    public class Product : Aggregate<Guid>
+    public class Product : Aggregate<ProductId>
     {
-        public string Name { get; private set; } = default!;
+        public ProductName Name { get; private set; } = default!;
         public List<string> Category { get; private set; } = new();
-        public string? Description { get; private set; } = default!;
-        public decimal Price { get; private set; }
-        public int StockQuantity { get; private set; }
-        public bool IsInStock { get; set; }
+        public Description? Description { get; private set; } = default!;
+        public Price Price { get; private set; } = default!;
+        public StockAvailability StockAvailability { get; private set; } = default!;
+        public int StockQuantity => StockAvailability.AvailableQuantity;
+        public bool IsInStock => StockAvailability.IsInStock;
 
         private Product()
         {
         }
 
-        private Product(string name, List<string> category, string? description, decimal price, int stockQuantity)
+        private Product(ProductName name, List<string> category, Description? description, Price price, int stockQuantity)
         {
-            Id = Guid.NewGuid();
+            Id = ProductId.Of(Guid.NewGuid());
             Name = name;
             Category = category;
             Description = description;
             Price = price;
-            StockQuantity = stockQuantity;
+            StockAvailability = StockAvailability.FromAvailableQuantity(stockQuantity);
             IsActive = true;
             IsDeleted = false;
         }
 
-        public static Product Create(string name, decimal price, int stockQuantity, List<string> category, string? description = null)
+        public static Product Create(ProductName name, decimal price, int stockQuantity, List<string> category, string? description = null)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(name);
-            ArgumentOutOfRangeException.ThrowIfNegative(price);
+            ArgumentNullException.ThrowIfNull(name);
+            var priceValueObject = Price.Of(price);
+            var descriptionValueObject = Description.Of(description);
             ArgumentOutOfRangeException.ThrowIfNegative(stockQuantity);
 
             if (category == null || category.Count == 0)
                 throw new ArgumentException("Category is required.", nameof(category));
 
-            var product = new Product(name, category, description, price, stockQuantity);
+            var product = new Product(name, category, descriptionValueObject, priceValueObject, stockQuantity);
 
             product.AddDomainEvent(new ProductCreatedEvent(product.Id,
                                                            product.Name,
                                                            product.Category,
-                                                           product.Description,
-                                                           product.Price,
+                                                           product.Description?.Value,
+                                                           product.Price.Value,
                                                            product.StockQuantity));
 
             return product;
         }
 
-        public void UpdateDetails(string name, string? description = null)
+        public void UpdateDetails(ProductName name, string? description = null)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(name);
+            ArgumentNullException.ThrowIfNull(name);
 
             Name = name;
-            Description = description;
+            Description = Description.Of(description);
         }
 
         public void ChangePrice(decimal price)
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(price);
+            var priceValueObject = Price.Of(price);
 
-            if (Price == price)
+            if (Price == priceValueObject)
                 return;
 
-            var oldPrice = Price;
-            Price = price;
+            var oldPrice = Price.Value;
+            Price = priceValueObject;
 
-            AddDomainEvent(new ProductPriceChangedEvent(Id, oldPrice, price));
+            AddDomainEvent(new ProductPriceChangedEvent(Id, oldPrice, priceValueObject.Value));
         }
 
         public void ChangeCategory(List<string> category)
@@ -79,9 +82,7 @@ namespace Catalog.Domain.Entities
 
         public void UpdateStockQuantity(bool isInStock, int quantity)
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(quantity);
-            IsInStock = isInStock;
-            StockQuantity = quantity;
+            StockAvailability = new StockAvailability(quantity, isInStock);
         }
 
         public void Activate()

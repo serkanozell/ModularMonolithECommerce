@@ -6,9 +6,13 @@ namespace Basket.Infrastructure.Configuration
         {
             //builder.ToTable("ShoppingCarts");
 
+            builder.Property(c => c.Id)
+                   .HasConversion(id => id.Value, value => ShoppingCartId.Of(value));
+
             builder.HasKey(c => c.Id);
 
             builder.Property(c => c.UserName)
+                   .HasConversion(userName => userName.Value, value => UserName.Of(value))
                    .IsRequired()
                    .HasMaxLength(100);
 

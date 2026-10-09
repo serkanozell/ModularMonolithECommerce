@@ -26,13 +26,13 @@ namespace Basket.Application.Features.Baskets.CreateBasket
 
             await repository.CreateBasket(basket, cancellationToken);
 
-            return new CreateBasketResult(basket.Id);
+            return new CreateBasketResult(basket.Id.Value);
         }
 
         private async Task<ShoppingCart> CreateNewBasket(CreateBasketDto createBasketDto, CancellationToken cancellationToken)
         {
             // create new basket
-            var newBasket = ShoppingCart.Create(createBasketDto.UserName);
+            var newBasket = ShoppingCart.Create(UserName.Of(createBasketDto.UserName));
 
             foreach (var item in createBasketDto.Items)
             {

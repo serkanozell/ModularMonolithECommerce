@@ -6,10 +6,16 @@ namespace Inventory.Infrastructure.Configuration
         {
             builder.HasKey(reservation => reservation.Id);
 
+            builder.Property(reservation => reservation.InventoryItemId)
+                   .HasConversion(id => id.Value, value => InventoryItemId.Of(value))
+                   .IsRequired();
+
             builder.Property(reservation => reservation.OrderId)
+                   .HasConversion(orderId => orderId.Value, value => OrderId.Of(value))
                    .IsRequired();
 
             builder.Property(reservation => reservation.Quantity)
+                   .HasConversion(quantity => quantity.Value, value => Quantity.Of(value))
                    .IsRequired();
 
             builder.Property(reservation => reservation.Status)

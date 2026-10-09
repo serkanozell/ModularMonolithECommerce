@@ -13,20 +13,26 @@ namespace Catalog.Application.Features.Products.CreateProduct
         public CreateProductCommandValidator()
         {
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage("Name is required.")
-                .MaximumLength(200).WithMessage("Name must not exceed 200 characters.");
+                .NotEmpty()
+                .WithMessage("Name is required.")
+                .MaximumLength(100)
+                .WithMessage("Name must not exceed 100 characters.");
 
             RuleFor(x => x.Category)
-                .NotEmpty().WithMessage("Category is required.");
+                .NotEmpty()
+                .WithMessage("Category is required.");
 
             RuleFor(x => x.Description)
-                .MaximumLength(2000).WithMessage("Description must not exceed 2000 characters.");
+                .MaximumLength(2000)
+                .WithMessage("Description must not exceed 2000 characters.");
 
             RuleFor(x => x.Price)
-                .GreaterThan(0).WithMessage("Price must be greater than zero.");
+                .GreaterThan(0)
+                .WithMessage("Price must be greater than zero.");
 
             RuleFor(x => x.StockQuantity)
-                .GreaterThanOrEqualTo(0).WithMessage("StockQuantity must not be negative.");
+                .GreaterThanOrEqualTo(0)
+                .WithMessage("StockQuantity must not be negative.");
         }
     }
 
@@ -37,7 +43,7 @@ namespace Catalog.Application.Features.Products.CreateProduct
             if (await repository.ExistsByNameAsync(command.Name, cancellationToken: cancellationToken))
                 throw new InvalidOperationException($"A product named '{command.Name}' already exists.");
 
-            var product = Product.Create(command.Name,
+            var product = Product.Create(ProductName.Of(command.Name),
                                          command.Price,
                                          command.StockQuantity,
                                          command.Category,
@@ -47,7 +53,7 @@ namespace Catalog.Application.Features.Products.CreateProduct
 
             await repository.SaveChangesAsync(cancellationToken);
 
-            return new CreateProductResult(product.Id);
+            return new CreateProductResult(product.Id.Value);
         }
     }
 }

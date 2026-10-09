@@ -5,9 +5,9 @@ namespace Ordering.Application.Features.Orders
     public static class OrderMappings
     {
         public static OrderDto ToDto(this Order order) =>
-            new(order.Id,
-                order.CustomerId,
-                order.OrderName,
+            new(order.Id.Value,
+                order.CustomerId.Value,
+                order.OrderName.Value,
                 order.ShippingAddress.ToDto(),
                 order.BillingAddress.ToDto(),
                 order.Payment.ToDto(),
@@ -19,7 +19,7 @@ namespace Ordering.Application.Features.Orders
             orders.Select(o => o.ToDto()).ToList();
 
         public static OrderItemDto ToDto(this OrderItem item) =>
-            new(item.ProductId, item.Quantity, item.Price);
+            new(item.ProductId.Value, item.Quantity.Value, item.Price.Value);
 
         public static AddressDto ToDto(this Address address) =>
             new(address.FirstName,

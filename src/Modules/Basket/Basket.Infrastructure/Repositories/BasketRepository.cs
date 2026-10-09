@@ -10,9 +10,9 @@ namespace Basket.Infrastructure.Repositories
         {
             var query = dbContext.ShoppingCarts
                 .Include(sc => sc.Items)
-                .Where(sc => sc.UserName == userName
-                            && sc.IsActive
-                            && !sc.IsDeleted);
+                .Where(sc => sc.UserName == UserName.Of(userName)
+                             && sc.IsActive
+                             && !sc.IsDeleted);
 
             if (asNoTracking)
                 query = query.AsNoTracking();
@@ -45,9 +45,9 @@ namespace Basket.Infrastructure.Repositories
                 .Include(sc => sc.Items)
                 .Where(sc => sc.IsActive
                             && !sc.IsDeleted
-                            && sc.Items.Any(i => i.ProductId == productId
-                                              && i.IsActive
-                                              && !i.IsDeleted))
+                            && sc.Items.Any(i => i.ProductId == ProductId.Of(productId)
+                                                 && i.IsActive
+                                                 && !i.IsDeleted))
                 .ToListAsync(cancellationToken);
         }
 

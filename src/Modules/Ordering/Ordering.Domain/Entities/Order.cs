@@ -2,27 +2,27 @@
 
 namespace Ordering.Domain.Entities
 {
-    public class Order : Aggregate<Guid>
+    public class Order : Aggregate<OrderId>
     {
         private readonly List<OrderItem> _items = new();
         public IReadOnlyList<OrderItem> Items => _items.AsReadOnly();
 
-        public Guid CustomerId { get; private set; } = default!;
-        public string OrderName { get; private set; } = default!;
+        public CustomerId CustomerId { get; private set; } = default!;
+        public OrderName OrderName { get; private set; } = default!;
         public OrderStatus OrderStatus { get; private set; }
         public Address ShippingAddress { get; private set; } = default!;
         public Address BillingAddress { get; private set; } = default!;
         public Payment Payment { get; private set; } = default!;
-        public decimal TotalPrice => Items.Sum(x => x.Price * x.Quantity);
+        public decimal TotalPrice => Items.Sum(x => x.Price.Value * x.Quantity.Value);
 
 
         private Order() { }
 
-        private Order(Guid customerId, Address shippingAddress, Address billingAddress, Payment payment)
+        private Order(CustomerId customerId, Address shippingAddress, Address billingAddress, Payment payment)
         {
-            Id = Guid.NewGuid();
+            Id = OrderId.Of(Guid.NewGuid());
             CustomerId = customerId;
-            OrderName = "ORD-" + DateTime.UtcNow + "-" + Guid.NewGuid().ToString()[..8].ToUpperInvariant().Substring(0, 8);
+            OrderName = OrderName.Of($"ORD-" + $"{DateTime.UtcNow:yyyyMMdd-HHmmss}-{Guid.NewGuid().ToString()[..8].ToUpperInvariant()}");
             OrderStatus = OrderStatus.Pending;
             ShippingAddress = shippingAddress;
             BillingAddress = billingAddress;
@@ -31,9 +31,9 @@ namespace Ordering.Domain.Entities
             IsDeleted = false;
         }
 
-        public static Order Create(Guid customerId, Address shippingAddress, Address billingAddress, Payment payment)
+        public static Order Create(CustomerId customerId, Address shippingAddress, Address billingAddress, Payment payment)
         {
-            ArgumentOutOfRangeException.ThrowIfEqual(customerId, Guid.Empty);
+            ArgumentNullException.ThrowIfNull(customerId);
             ArgumentNullException.ThrowIfNull(shippingAddress);
             ArgumentNullException.ThrowIfNull(billingAddress);
             ArgumentNullException.ThrowIfNull(payment);
@@ -45,9 +45,9 @@ namespace Ordering.Domain.Entities
             return order;
         }
 
-        public void Update(string orderName, Address shippingAddress, Address billingAddress, Payment payment)
+        public void Update(OrderName orderName, Address shippingAddress, Address billingAddress, Payment payment)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(orderName);
+            ArgumentNullException.ThrowIfNull(orderName);
             ArgumentNullException.ThrowIfNull(shippingAddress);
             ArgumentNullException.ThrowIfNull(billingAddress);
             ArgumentNullException.ThrowIfNull(payment);
@@ -60,25 +60,26 @@ namespace Ordering.Domain.Entities
 
         public void Add(Guid productId, int quantity, decimal price)
         {
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(price);
+            var productIdValueObject = ProductId.Of(productId);
+            var quantityValueObject = Quantity.Of(quantity);
+            var priceValueObject = Price.Of(price);
 
-            var existingItem = _items.FirstOrDefault(x => x.ProductId == productId);
+            var existingItem = _items.FirstOrDefault(x => x.ProductId == productIdValueObject);
 
             if (existingItem != null)
             {
-                existingItem.IncreaseQuantity(quantity);
+                existingItem.IncreaseQuantity(quantityValueObject);
             }
             else
             {
-                var orderItem = OrderItem.Create(Id, productId, quantity, price);
+                var orderItem = OrderItem.Create(Id, productIdValueObject, quantityValueObject, priceValueObject);
                 _items.Add(orderItem);
             }
         }
 
         public void Remove(Guid productId)
         {
-            var orderItem = _items.FirstOrDefault(x => x.ProductId == productId);
+            var orderItem = _items.FirstOrDefault(x => x.ProductId.Value == productId);
             if (orderItem is not null)
             {
                 _items.Remove(orderItem);

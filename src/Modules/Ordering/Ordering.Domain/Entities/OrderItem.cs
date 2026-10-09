@@ -1,11 +1,12 @@
 ﻿namespace Ordering.Domain.Entities
 {
-    public class OrderItem : Entity<Guid>
+    public class OrderItem : Entity<OrderItemId>
     {
         private OrderItem() { }
 
-        private OrderItem(Guid orderId, Guid productId, int quantity, decimal price)
+        private OrderItem(OrderId orderId, ProductId productId, Quantity quantity, Price price)
         {
+            Id = OrderItemId.Of(Guid.NewGuid());
             OrderId = orderId;
             ProductId = productId;
             Quantity = quantity;
@@ -14,24 +15,24 @@
             IsDeleted = false;
         }
 
-        public Guid OrderId { get; private set; } = default!;
-        public Guid ProductId { get; private set; } = default!;
-        public int Quantity { get; private set; } = default!;
-        public decimal Price { get; private set; } = default!;
+        public OrderId OrderId { get; private set; } = default!;
+        public ProductId ProductId { get; private set; } = default!;
+        public Quantity Quantity { get; private set; } = default!;
+        public Price Price { get; private set; } = default!;
 
-        internal static OrderItem Create(Guid orderId, Guid productId, int quantity, decimal price)
+        internal static OrderItem Create(OrderId orderId, ProductId productId, Quantity quantity, Price price)
         {
-            ArgumentOutOfRangeException.ThrowIfEqual(productId, Guid.Empty);
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(price);
+            ArgumentNullException.ThrowIfNull(orderId);
+            ArgumentNullException.ThrowIfNull(productId);
+            ArgumentNullException.ThrowIfNull(quantity);
+            ArgumentNullException.ThrowIfNull(price);
 
             return new OrderItem(orderId, productId, quantity, price);
         }
 
-        internal void IncreaseQuantity(int quantity)
+        internal void IncreaseQuantity(Quantity quantity)
         {
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(quantity);
-            Quantity += quantity;
+            Quantity = Quantity.Increase(quantity);
         }
     }
 }

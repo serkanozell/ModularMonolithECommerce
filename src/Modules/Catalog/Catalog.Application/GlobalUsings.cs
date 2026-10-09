@@ -5,6 +5,7 @@ global using Catalog.Contracts.Features.Products;
 global using Catalog.Contracts.Features.Products.GetProductById;
 global using Catalog.Domain.Entities;
 global using Catalog.Domain.Repositories;
+global using Catalog.Domain.ValueObjects;
 global using FluentValidation;
 global using MediatR;
 global using Microsoft.AspNetCore.Builder;

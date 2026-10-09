@@ -16,12 +16,15 @@ namespace Notification.Infrastructure.Repositories
             await ActiveCodes(recipient, purpose).ToListAsync(cancellationToken);
 
         public Task<int> CountCreatedSinceAsync(string recipient, DateTime sinceUtc, CancellationToken cancellationToken = default) =>
-            context.OtpCodes.CountAsync(x => x.Recipient == recipient && x.CreatedAt >= sinceUtc, cancellationToken);
+            context.OtpCodes.CountAsync(x => x.Recipient == Recipient.Of(recipient) && x.CreatedAt >= sinceUtc, cancellationToken);
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
             context.SaveChangesAsync(cancellationToken);
 
         private IQueryable<OtpCode> ActiveCodes(string recipient, string purpose) =>
-            context.OtpCodes.Where(x => x.Recipient == recipient && x.Purpose == purpose && x.IsActive && !x.IsDeleted);
+            context.OtpCodes.Where(x => x.Recipient == Recipient.Of(recipient)
+                                     && x.Purpose == OtpPurpose.Of(purpose)
+                                     && x.IsActive
+                                     && !x.IsDeleted);
     }
 }

@@ -19,16 +19,16 @@ namespace Catalog.Application.Features.Products.UpdateProduct
             RuleFor(x => x.Name)
                 .NotEmpty()
                 .WithMessage("Name is required.")
-                .MaximumLength(200)
-                .WithMessage("Name must not exceed 200 characters.");
+                .MaximumLength(100)
+                .WithMessage("Name must not exceed 100 characters.");
 
             RuleFor(x => x.Category)
                 .NotEmpty()
                 .WithMessage("Category is required.");
 
             RuleFor(x => x.Description)
-                .MaximumLength(2000)
-                .WithMessage("Description must not exceed 2000 characters.");
+                .MaximumLength(500)
+                .WithMessage("Description must not exceed 500 characters.");
 
             RuleFor(x => x.Price)
                 .GreaterThan(0)
@@ -46,7 +46,7 @@ namespace Catalog.Application.Features.Products.UpdateProduct
             if (await repository.ExistsByNameAsync(command.Name, command.Id, cancellationToken))
                 throw new InvalidOperationException($"A product named '{command.Name}' already exists.");
 
-            product.UpdateDetails(command.Name, command.Description);
+            product.UpdateDetails(ProductName.Of(command.Name), command.Description);
             product.ChangeCategory(command.Category);
             product.ChangePrice(command.Price);
 

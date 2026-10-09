@@ -1,4 +1,5 @@
 ﻿using Basket.Domain.Entities;
+using Basket.Domain.ValueObjects;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -15,7 +16,8 @@ namespace Basket.Domain.Helpers
             var userName = rootElement.GetProperty("userName").GetString()!;
             var itemsElement = rootElement.GetProperty("items");
 
-            var shoppingCart = ShoppingCart.Create(userName);
+            var shoppingCart = ShoppingCart.Create(UserName.Of(userName));
+            shoppingCart.Id = ShoppingCartId.Of(rootElement.GetProperty("id").GetGuid());
 
             var items = itemsElement.Deserialize<List<ShoppingCartItem>>(options);
             if (items != null)
@@ -31,8 +33,8 @@ namespace Basket.Domain.Helpers
         {
             writer.WriteStartObject();
 
-            writer.WriteString("id", value.Id.ToString());
-            writer.WriteString("userName", value.UserName);
+            writer.WriteString("id", value.Id.Value.ToString());
+            writer.WriteString("userName", value.UserName.Value);
 
             writer.WritePropertyName("items");
             JsonSerializer.Serialize(writer, value.Items, options);

@@ -9,8 +9,8 @@ namespace Inventory.Application.Features.InventoryItems.EventHandlers
         {
             logger.LogInformation("Domain event handled: {DomainEvent} - InventoryItemId: {InventoryItemId}, ProductId: {ProductId}, InitialQuantity: {InitialQuantity}",
                                   notification.GetType().Name,
-                                  notification.InventoryItemId,
-                                  notification.ProductId,
+                                  notification.InventoryItemId.Value,
+                                  notification.ProductId.Value,
                                   notification.InitialQuantity);
 
             return Task.CompletedTask;

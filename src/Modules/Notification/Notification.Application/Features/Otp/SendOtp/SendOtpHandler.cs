@@ -56,9 +56,11 @@ namespace Notification.Application.Features.Otp.SendOtp
             var code = OtpCodeGenerator.Generate(_options.CodeLength);
             var channel = (NotificationChannel)command.Channel;
 
-            var otpCode = OtpCode.Create(command.Recipient,
+            var recipient = Recipient.Of(command.Recipient);
+            var purpose = OtpPurpose.Of(command.Purpose);
+            var otpCode = OtpCode.Create(recipient,
                                          channel,
-                                         command.Purpose,
+                                         purpose,
                                          OtpCodeGenerator.Hash(code),
                                          TimeSpan.FromMinutes(_options.LifetimeInMinutes),
                                          _options.MaxAttempts);
@@ -72,9 +74,9 @@ namespace Notification.Application.Features.Otp.SendOtp
             switch (channel)
             {
                 case NotificationChannel.Email:
-                    await publishEndpoint.Publish(new SendOtpIntegrationEvent(otpCode.Id,
-                                                                      command.Recipient,
-                                                                      command.Purpose,
+                    await publishEndpoint.Publish(new SendOtpIntegrationEvent(otpCode.Id.Value,
+                                                                      recipient.Value,
+                                                                      purpose.Value,
                                                                       text), cancellationToken);
                     break;
                     //case NotificationChannel.Sms:
@@ -82,7 +84,7 @@ namespace Notification.Application.Features.Otp.SendOtp
                     //    break;
             }
 
-            return new SendOtpResult(otpCode.Id, otpCode.ExpiresAt);
+            return new SendOtpResult(otpCode.Id.Value, otpCode.ExpiresAt.Value);
         }
     }
 }

@@ -9,8 +9,8 @@ namespace Catalog.Application.Features.Products.EventHandlers
         {
             logger.LogInformation("Domain event handled: {DomainEvent} - ProductId: {ProductId}, Name: {Name}",
                                   notification.GetType().Name,
-                                  notification.ProductId,
-                                  notification.Name);
+                                  notification.ProductId.Value,
+                                  notification.Name.Value);
 
             // İleride: outbox'a integration event yazılacak.
 

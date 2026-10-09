@@ -4,6 +4,7 @@ global using Carter;
 global using FluentValidation;
 global using Inventory.Domain.Entities;
 global using Inventory.Domain.Repositories;
+global using Inventory.Domain.ValueObjects;
 global using MediatR;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Http;

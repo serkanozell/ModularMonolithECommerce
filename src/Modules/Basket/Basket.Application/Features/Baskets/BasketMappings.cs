@@ -5,19 +5,19 @@ namespace Basket.Application.Features.Baskets
     public static class BasketMappings
     {
         public static BasketDto ToDto(this ShoppingCart cart) =>
-            new(cart.Id,
-                cart.UserName,
+            new(cart.Id.Value,
+                cart.UserName.Value,
                 cart.Items.Select(i => i.ToDto())
                           .ToList());
 
         public static BasketItemDto ToDto(this ShoppingCartItem item) =>
             new(
-                item.Id,
-                item.ShoppingCartId,
-                item.ProductId,
-                item.ProductName,
-                item.Color,
-                item.Quantity,
-                item.Price);
+                item.Id.Value,
+                item.ShoppingCartId.Value,
+                item.ProductId.Value,
+                item.ProductName.Value,
+                item.Color.Value,
+                item.Quantity.Value,
+                item.Price.Value);
     }
 }

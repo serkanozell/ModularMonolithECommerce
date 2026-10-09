@@ -6,14 +6,19 @@ namespace Ordering.Infrastructure.Persistence.Configurations
         {
             builder.ToTable("orders");
 
+            builder.Property(x => x.Id)
+                   .HasConversion(id => id.Value, value => OrderId.Of(value));
+
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.CustomerId)
+                   .HasConversion(id => id.Value, value => CustomerId.Of(value))
                    .IsRequired();
 
             builder.HasIndex(x => x.CustomerId);
 
             builder.Property(x => x.OrderName)
+                   .HasConversion(name => name.Value, value => OrderName.Of(value))
                    .IsRequired()
                    .HasMaxLength(100);
 

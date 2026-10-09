@@ -3,8 +3,8 @@ namespace Inventory.Application.Features.InventoryItems
     public static class InventoryItemMappings
     {
         public static InventoryItemDto ToDto(this InventoryItem item) =>
-            new(item.Id,
-                item.ProductId,
+            new(item.Id.Value,
+                item.ProductId.Value,
                 item.StockLevel.OnHand,
                 item.StockLevel.Reserved,
                 item.StockLevel.Available,

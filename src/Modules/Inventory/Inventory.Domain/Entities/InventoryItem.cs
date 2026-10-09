@@ -4,33 +4,34 @@ using Inventory.Domain.ValueObjects;
 
 namespace Inventory.Domain.Entities
 {
-    public sealed class InventoryItem : Aggregate<Guid>
+    public sealed class InventoryItem : Aggregate<InventoryItemId>
     {
         private readonly List<StockReservation> _reservations = new();
 
-        public Guid ProductId { get; private set; }
+        public ProductId ProductId { get; private set; }
         public StockLevel StockLevel { get; private set; }
         public IReadOnlyCollection<StockReservation> Reservations => _reservations.AsReadOnly();
         public bool IsInStock => StockLevel.Available > 0;
 
         private InventoryItem() { }
 
-        private InventoryItem(Guid productId, StockLevel stockLevel)
+        private InventoryItem(ProductId productId, StockLevel stockLevel)
         {
-            Id = Guid.NewGuid();
+            Id = InventoryItemId.Of(Guid.NewGuid());
             ProductId = productId;
             StockLevel = stockLevel;
             IsActive = true;
             IsDeleted = false;
         }
 
-        public static InventoryItem Create(Guid productId, int initialQuantity = 0)
+        public static InventoryItem Create(ProductId productId, int initialQuantity = 0)
         {
-            ArgumentOutOfRangeException.ThrowIfEqual(productId, Guid.Empty);
+            ArgumentNullException.ThrowIfNull(productId);
             ArgumentOutOfRangeException.ThrowIfNegative(initialQuantity);
 
             var item = new InventoryItem(productId, StockLevel.Create(initialQuantity));
             item.AddDomainEvent(new InventoryItemCreatedEvent(item.Id, productId, initialQuantity));
+            item.AddDomainEvent(new StockAvailabilityChangedEvent(item.Id, productId, item.IsInStock, item.StockLevel.Available));
 
             return item;
         }
@@ -47,9 +48,10 @@ namespace Inventory.Domain.Entities
 
         public bool Reserve(Guid orderId, int quantity)
         {
-            ArgumentOutOfRangeException.ThrowIfEqual(orderId, Guid.Empty);
+            var orderIdValueObject = OrderId.Of(orderId);
+            var quantityValueObject = Quantity.Of(quantity);
 
-            var existingReservation = _reservations.FirstOrDefault(reservation => reservation.OrderId == orderId && reservation.IsActive && !reservation.IsDeleted);
+            var existingReservation = _reservations.FirstOrDefault(reservation => reservation.OrderId == orderIdValueObject && reservation.IsActive && !reservation.IsDeleted);
             if (existingReservation is not null)
             {
                 if (existingReservation.Status == StockReservationStatus.Confirmed)
@@ -58,28 +60,30 @@ namespace Inventory.Domain.Entities
                 if (existingReservation.Status == StockReservationStatus.Released)
                     return false;
 
-                return existingReservation.Quantity == quantity;
+                return existingReservation.Quantity == quantityValueObject;
             }
 
-            UpdateStockLevel(StockLevel.Reserve(quantity));
-            _reservations.Add(StockReservation.Create(Id, orderId, quantity));
+            UpdateStockLevel(StockLevel.Reserve(quantityValueObject.Value));
+            _reservations.Add(StockReservation.Create(Id, orderIdValueObject, quantityValueObject));
             return true;
         }
 
         public bool ReleaseReservation(Guid orderId)
         {
-            var reservation = _reservations.FirstOrDefault(reservation => reservation.OrderId == orderId && reservation.IsActive && !reservation.IsDeleted);
+            var orderIdValueObject = OrderId.Of(orderId);
+            var reservation = _reservations.FirstOrDefault(reservation => reservation.OrderId == orderIdValueObject && reservation.IsActive && !reservation.IsDeleted);
             if (reservation is null || reservation.Status != StockReservationStatus.Reserved)
                 return false;
 
-            UpdateStockLevel(StockLevel.Release(reservation.Quantity));
+            UpdateStockLevel(StockLevel.Release(reservation.Quantity.Value));
             reservation.Release();
             return true;
         }
 
         public bool ConfirmReservation(Guid orderId)
         {
-            var reservation = _reservations.FirstOrDefault(reservation => reservation.OrderId == orderId && reservation.IsActive && !reservation.IsDeleted);
+            var orderIdValueObject = OrderId.Of(orderId);
+            var reservation = _reservations.FirstOrDefault(reservation => reservation.OrderId == orderIdValueObject && reservation.IsActive && !reservation.IsDeleted);
             if (reservation is null)
                 return false;
 
@@ -89,7 +93,7 @@ namespace Inventory.Domain.Entities
             if (reservation.Status == StockReservationStatus.Released)
                 return false;
 
-            UpdateStockLevel(StockLevel.ConfirmReservation(reservation.Quantity));
+            UpdateStockLevel(StockLevel.ConfirmReservation(reservation.Quantity.Value));
             reservation.Confirm();
             return true;
         }
@@ -108,10 +112,10 @@ namespace Inventory.Domain.Entities
 
         private void UpdateStockLevel(StockLevel newStockLevel)
         {
-            var wasInStock = IsInStock;
+            var previousAvailableQuantity = StockLevel.Available;
             StockLevel = newStockLevel;
 
-            if (wasInStock != IsInStock)
+            if (previousAvailableQuantity != StockLevel.Available)
             {
                 AddDomainEvent(new StockAvailabilityChangedEvent(
                     Id, ProductId, IsInStock, StockLevel.Available));

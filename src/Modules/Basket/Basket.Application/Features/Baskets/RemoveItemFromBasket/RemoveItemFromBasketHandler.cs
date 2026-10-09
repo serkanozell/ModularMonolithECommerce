@@ -21,7 +21,7 @@
 
             await repository.SaveChangesAsync(command.UserName, cancellationToken);
 
-            return new RemoveItemFromBasketResult(shoppingCart.Id);
+            return new RemoveItemFromBasketResult(shoppingCart.Id.Value);
         }
     }
 }

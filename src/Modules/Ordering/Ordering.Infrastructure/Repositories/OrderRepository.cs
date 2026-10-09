@@ -12,7 +12,7 @@ namespace Ordering.Infrastructure.Repositories
         public Task<Order?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
             context.Orders
                    .Include(o => o.Items)
-                   .FirstOrDefaultAsync(o => o.Id == id && !o.IsDeleted, cancellationToken);
+                   .FirstOrDefaultAsync(o => o.Id == OrderId.Of(id) && !o.IsDeleted, cancellationToken);
 
         public async Task<IReadOnlyList<Order>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default) =>
             await ActiveOrders()

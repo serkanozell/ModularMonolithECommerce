@@ -11,16 +11,16 @@ namespace Inventory.Application.Features.InventoryItems.EventHandlers
         {
             var integrationEvent = new StockAvailabilityChangedIntegrationEvent
             {
-                InventoryItemId = notification.InventoryItemId,
-                ProductId = notification.ProductId,
+                InventoryItemId = notification.InventoryItemId.Value,
+                ProductId = notification.ProductId.Value,
                 IsInStock = notification.IsInStock,
                 AvailableQuantity = notification.AvailableQuantity
             };
 
             logger.LogInformation("Domain event handled: {DomainEvent} - InventoryItemId: {InventoryItemId}, ProductId: {ProductId}, IsInStock: {IsInStock}, AvailableQuantity: {AvailableQuantity}",
                                   notification.GetType().Name,
-                                  notification.InventoryItemId,
-                                  notification.ProductId,
+                                  notification.InventoryItemId.Value,
+                                  notification.ProductId.Value,
                                   notification.IsInStock,
                                   notification.AvailableQuantity);
 
