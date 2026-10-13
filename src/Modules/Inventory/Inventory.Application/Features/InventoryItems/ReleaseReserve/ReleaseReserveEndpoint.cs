@@ -6,9 +6,9 @@ namespace Inventory.Application.Features.InventoryItems.ReleaseReserve
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/inventory/items/{id:guid}/stock/release-reservation", async (Guid id, ReleaseReserveRequest request, ISender sender, CancellationToken cancellationToken) =>
+            app.MapPost("/api/inventory/items/stock/release-reservation", async (ReleaseReserveRequest request, ISender sender, CancellationToken cancellationToken) =>
             {
-                var result = await sender.Send(new ReleaseReserveCommand(id, request.OrderId), cancellationToken);
+                var result = await sender.Send(new ReleaseReserveCommand(request.OrderId), cancellationToken);
                 return Results.Ok(result);
             })
             .WithName("ReleaseReserve")

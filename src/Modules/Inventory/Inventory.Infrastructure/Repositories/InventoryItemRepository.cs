@@ -1,4 +1,5 @@
 using Inventory.Domain.Repositories;
+using Inventory.Domain.Enums;
 using Inventory.Infrastructure.Persistence;
 
 namespace Inventory.Infrastructure.Repositories
@@ -16,6 +17,14 @@ namespace Inventory.Infrastructure.Repositories
             await context.InventoryItems
                 .Include(item => item.Reservations.Where(reservation => reservation.OrderId == OrderId.Of(orderId) && reservation.IsActive && !reservation.IsDeleted))
                 .FirstOrDefaultAsync(item => item.Id == InventoryItemId.Of(id) && !item.IsDeleted, cancellationToken);
+
+        public async Task<IReadOnlyList<InventoryItem>> GetByOrderIdWithReservationsAsync(Guid orderId, CancellationToken cancellationToken = default) =>
+            await context.InventoryItems
+                .Where(item => !item.IsDeleted && item.Reservations.Any(reservation =>
+                    reservation.OrderId == OrderId.Of(orderId) && reservation.IsActive && !reservation.IsDeleted && reservation.Status == StockReservationStatus.Reserved))
+                .Include(item => item.Reservations.Where(reservation =>
+                    reservation.OrderId == OrderId.Of(orderId) && reservation.IsActive && !reservation.IsDeleted && reservation.Status == StockReservationStatus.Reserved))
+                .ToListAsync(cancellationToken);
 
         public async Task<InventoryItem?> GetByProductIdWithReservationsAsync(Guid productId, Guid orderId, CancellationToken cancellationToken = default) =>
             await context.InventoryItems

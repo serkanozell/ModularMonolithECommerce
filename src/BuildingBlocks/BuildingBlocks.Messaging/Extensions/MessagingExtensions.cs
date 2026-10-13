@@ -54,6 +54,7 @@ namespace BuildingBlocks.Messaging.Extensions
             services.AddMassTransit(config =>
             {
                 config.SetKebabCaseEndpointNameFormatter();
+                config.AddDelayedMessageScheduler();
 
                 config.AddConsumers(consumerAssemblies);
                 configureSagaRegistrations?.Invoke(config);
@@ -75,6 +76,8 @@ namespace BuildingBlocks.Messaging.Extensions
                 });
                 config.UsingRabbitMq((context, cfg) =>
                 {
+                    cfg.UseDelayedMessageScheduler();
+
                     cfg.Host(brokerOptions.Host, host =>
                     {
                         host.Username(brokerOptions.UserName);

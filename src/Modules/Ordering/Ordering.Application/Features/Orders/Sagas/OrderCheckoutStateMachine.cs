@@ -38,7 +38,7 @@ namespace Ordering.Application.Features.Orders.Sagas
 
             Schedule(() => StockReservationTimeout, x => x.StockTimeoutTokenId, scheduleConfig =>
             {
-                scheduleConfig.Delay = TimeSpan.FromSeconds(30);
+                scheduleConfig.Delay = TimeSpan.FromSeconds(5);
                 scheduleConfig.Received = e => e.CorrelateById(context => context.Message.OrderId);
             });
 
@@ -51,15 +51,12 @@ namespace Ordering.Application.Features.Orders.Sagas
                         context.Saga.TotalAmount = context.Message.TotalPrice;
                         context.Saga.StartedAtUtc = DateTime.UtcNow;
                     })
-                    .ThenAsync(async context =>
-                    {
-                        await context.Publish(
-                            new ReserveStockIntegrationEvent(
+                    .Publish(context =>
+                         new ReserveStockIntegrationEvent(
                                 context.Saga.CorrelationId,
                                 context.Saga.OrderId,
-                                context.Message.OrderItems),
-                            context.CancellationToken);
-                    })
+                                context.Message.OrderItems))
+                    .Schedule(StockReservationTimeout, context => new StockReservationTimeoutExpired(context.Saga.OrderId))
                     .TransitionTo(AwaitingStockReservations));
 
             During(AwaitingStockReservations,

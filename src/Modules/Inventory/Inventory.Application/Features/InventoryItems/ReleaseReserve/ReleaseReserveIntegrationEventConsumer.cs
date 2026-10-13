@@ -7,7 +7,7 @@ namespace Inventory.Application.Features.InventoryItems.ReleaseReserve
     {
         public async Task Consume(ConsumeContext<ReleaseReserveIntegrationEvent> context)
         {
-            await sender.Send(new ReleaseReserveCommand(context.Message.SagaCorrelationId, context.Message.OrderId), context.CancellationToken);
+            await sender.Send(new ReleaseReserveCommand(context.Message.OrderId), context.CancellationToken);
         }
     }
 }

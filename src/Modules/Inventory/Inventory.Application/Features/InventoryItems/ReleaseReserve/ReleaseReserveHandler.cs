@@ -1,6 +1,6 @@
 namespace Inventory.Application.Features.InventoryItems.ReleaseReserve
 {
-    public record ReleaseReserveCommand(Guid Id, Guid OrderId) : ICommand<ReleaseReserveResult>;
+    public record ReleaseReserveCommand(Guid OrderId) : ICommand<ReleaseReserveResult>;
 
     public record ReleaseReserveResult(bool IsSuccess);
 
@@ -8,7 +8,6 @@ namespace Inventory.Application.Features.InventoryItems.ReleaseReserve
     {
         public ReleaseReserveCommandValidator()
         {
-            RuleFor(command => command.Id).NotEmpty();
             RuleFor(command => command.OrderId).NotEmpty();
         }
     }
@@ -17,10 +16,13 @@ namespace Inventory.Application.Features.InventoryItems.ReleaseReserve
     {
         public async Task<ReleaseReserveResult> Handle(ReleaseReserveCommand command, CancellationToken cancellationToken)
         {
-            var item = await repository.GetByIdWithReservationsAsync(command.Id, command.OrderId, cancellationToken)
-                ?? throw new KeyNotFoundException($"Inventory item with id '{command.Id}' was not found.");
+            var items = await repository.GetByOrderIdWithReservationsAsync(command.OrderId, cancellationToken);
+            var isReleased = false;
 
-            if (!item.ReleaseReservation(command.OrderId))
+            foreach (var item in items)
+                isReleased |= item.ReleaseReservation(command.OrderId);
+
+            if (!isReleased)
                 return new ReleaseReserveResult(false);
 
             try
