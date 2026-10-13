@@ -24,6 +24,7 @@ services:
       - "9091:80"
 
   messagebus:
+    image: masstransit/rabbitmq:latest
     container_name: messagebus
     hostname: ecommerce-mq
     environment:
