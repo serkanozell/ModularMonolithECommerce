@@ -1,5 +1,6 @@
 using BuildingBlocks.Shared.Data;
 using BuildingBlocks.Shared.Interceptors;
+using BuildingBlocks.Messaging.Transactions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -32,12 +33,20 @@ namespace Ordering.Api
                        .UseSnakeCaseNamingConvention();
             });
 
+            services.AddDbContext<OrderingSagaDbContext>((sp, options) =>
+            {
+                options.AddInterceptors(sp.GetRequiredService<EnlistTransactionInterceptor>());
+                options.UseNpgsql(sp.GetRequiredService<DbConnection>())
+                       .UseSnakeCaseNamingConvention();
+            });
+
             return services;
         }
 
         public static IApplicationBuilder UseOrderingModule(this IApplicationBuilder app)
         {
             app.UseMigrations<OrderingDbContext>();
+            app.UseMigrations<OrderingSagaDbContext>();
 
             return app;
         }

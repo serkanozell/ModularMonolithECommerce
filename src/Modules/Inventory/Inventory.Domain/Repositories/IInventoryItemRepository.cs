@@ -12,6 +12,8 @@ namespace Inventory.Domain.Repositories
 
         Task<InventoryItem?> GetByIdWithReservationsAsync(Guid id, Guid orderId, CancellationToken cancellationToken = default);
 
+        Task<InventoryItem?> GetByProductIdWithReservationsAsync(Guid productId, Guid orderId, CancellationToken cancellationToken = default);
+
         Task<InventoryItem?> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken = default);
 
         Task<IReadOnlyList<InventoryItem>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);

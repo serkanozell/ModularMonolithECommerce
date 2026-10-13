@@ -1,14 +1,16 @@
+using BuildingBlocks.Shared.Dtos;
+
 namespace Inventory.Application.Features.InventoryItems.ReserveStock
 {
-    public record ReserveStockRequest(Guid OrderId, int Quantity);
+    public record ReserveStockRequest(List<OrderItemDto> OrderItems);
 
     public class ReserveStockEndpoint : ICarterModule
     {
         public void AddRoutes(IEndpointRouteBuilder app)
         {
-            app.MapPost("/api/inventory/items/{id:guid}/stock/reserve", async (Guid id, ReserveStockRequest request, ISender sender, CancellationToken cancellationToken) =>
+            app.MapPost("/api/inventory/orders/{orderId:guid}/stock/reserve", async (Guid orderId, ReserveStockRequest request, ISender sender, CancellationToken cancellationToken) =>
             {
-                var result = await sender.Send(new ReserveStockCommand(id, request.OrderId, request.Quantity), cancellationToken);
+                var result = await sender.Send(new ReserveStockCommand(request.OrderItems, orderId), cancellationToken);
                 return Results.Ok(result);
             })
             .WithName("ReserveStock")

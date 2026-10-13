@@ -1,4 +1,5 @@
 using BuildingBlocks.Messaging.Events;
+using BuildingBlocks.Shared.Dtos;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using Ordering.Domain.Events;
@@ -29,6 +30,14 @@ namespace Ordering.Application.Features.Orders.EventHandlers
             };
 
             await publishEndpoint.Publish(orderCreatedIntegrationEvent, cancellationToken);
+
+            var orderplacedIntegrationEvent = new OrderPlacedIntegrationEvent
+            {
+                OrderId = order.Id.Value,
+                OrderItems = order.Items.Select(oi => new OrderItemDto(oi.ProductId.Value, oi.Quantity.Value, oi.Price.Value)).ToList()
+            };
+
+            await publishEndpoint.Publish(orderplacedIntegrationEvent, cancellationToken);
         }
     }
 }

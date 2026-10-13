@@ -17,6 +17,11 @@ namespace Inventory.Infrastructure.Repositories
                 .Include(item => item.Reservations.Where(reservation => reservation.OrderId == OrderId.Of(orderId) && reservation.IsActive && !reservation.IsDeleted))
                 .FirstOrDefaultAsync(item => item.Id == InventoryItemId.Of(id) && !item.IsDeleted, cancellationToken);
 
+        public async Task<InventoryItem?> GetByProductIdWithReservationsAsync(Guid productId, Guid orderId, CancellationToken cancellationToken = default) =>
+            await context.InventoryItems
+                .Include(item => item.Reservations.Where(reservation => reservation.OrderId == OrderId.Of(orderId) && reservation.IsActive && !reservation.IsDeleted))
+                .FirstOrDefaultAsync(item => item.ProductId == ProductId.Of(productId) && !item.IsDeleted, cancellationToken);
+
         public async Task<InventoryItem?> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken = default) =>
             await context.InventoryItems.FirstOrDefaultAsync(item => item.ProductId == ProductId.Of(productId) && !item.IsDeleted, cancellationToken);
 

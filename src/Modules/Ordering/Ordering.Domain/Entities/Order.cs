@@ -99,7 +99,15 @@ namespace Ordering.Domain.Entities
             ChangeStatus(OrderStatus.Cancelled);
         }
 
-        public void ChangeStatus(OrderStatus status)
+        public void Cancel(string reason)
+        {
+            if (string.IsNullOrWhiteSpace(reason))
+                throw new ArgumentException("Cancellation reason cannot be null or empty.", nameof(reason));
+            ChangeStatus(OrderStatus.Cancelled);
+            AddDomainEvent(new OrderCanceledEvent(Id.Value, reason));
+        }
+
+        private void ChangeStatus(OrderStatus status)
         {
             if (!Enum.IsDefined(status))
             {

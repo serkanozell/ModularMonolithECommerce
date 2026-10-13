@@ -25,7 +25,10 @@ namespace BuildingBlocks.Messaging.Extensions
         /// and MassTransit. Must be called after AddMediatRWithAssemblies so that TransactionBehavior
         /// runs innermost (after validation and logging).
         /// </summary>
-        public static IServiceCollection AddMessaging(this IServiceCollection services, IConfiguration configuration, params Assembly[] consumerAssemblies)
+        public static IServiceCollection AddMessaging(this IServiceCollection services,
+                                                      IConfiguration configuration,
+                                                      Action<IBusRegistrationConfigurator>? configureSagaRegistrations = null,
+                                                      params Assembly[] consumerAssemblies)
         {
             var connectionString = configuration.GetConnectionString(ConnectionStringName)
                 ?? throw new InvalidOperationException($"Connection string '{ConnectionStringName}' not found.");
@@ -53,10 +56,7 @@ namespace BuildingBlocks.Messaging.Extensions
                 config.SetKebabCaseEndpointNameFormatter();
 
                 config.AddConsumers(consumerAssemblies);
-
-                config.AddSagaStateMachines(consumerAssemblies);
-
-                config.AddSagas(consumerAssemblies);
+                configureSagaRegistrations?.Invoke(config);
 
                 config.AddActivities(consumerAssemblies);
 

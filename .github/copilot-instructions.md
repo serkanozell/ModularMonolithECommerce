@@ -5,3 +5,6 @@
 
 ## Inventory Module Guidelines
 - For the Inventory module MVP, prefer a deliberately simple domain model centered on InventoryItem and StockLevel; defer stock reservation entities, movement-history entities, related enums, and their event types until requirements justify them.
+
+## Ordering Module Guidelines
+- For the Ordering checkout saga, prefer using a FailureReason field rather than PendingStockReservations and FailedStockReservations counters.

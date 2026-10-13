@@ -4,6 +4,9 @@ using BuildingBlocks.Shared.Exceptions.Handler;
 using BuildingBlocks.Shared.Services;
 using Notification.Api;
 using Notification.Application;
+using MassTransit;
+using Ordering.Application.Features.Orders.Sagas;
+using Ordering.Infrastructure.Persistence;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,7 +44,20 @@ builder.Services.AddStackExchangeRedisCache(options =>
 });
 
 // Must be registered after MediatR so that TransactionBehavior runs innermost
-builder.Services.AddMessaging(builder.Configuration, catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly);
+builder.Services.AddMessaging(
+    builder.Configuration,
+    config => config.AddSagaStateMachine<OrderCheckoutStateMachine, OrderCheckoutSagaState>() //bunu orderingmodule içine taşıyabiliriz
+        .EntityFrameworkRepository(repository =>
+        {
+            repository.ConcurrencyMode = ConcurrencyMode.Pessimistic;
+            repository.ExistingDbContext<OrderingSagaDbContext>();
+            repository.UsePostgres();
+        }),
+    catalogAssembly,
+    basketAssembly,
+    orderingAssembly,
+    notificationAssembly,
+    inventoryAssembly);
 
 builder.Services.AddKeycloakWebApiAuthentication(builder.Configuration, "Keycloak");
 
