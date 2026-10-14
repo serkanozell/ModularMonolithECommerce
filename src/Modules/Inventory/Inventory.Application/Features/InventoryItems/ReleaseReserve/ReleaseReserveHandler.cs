@@ -17,13 +17,10 @@ namespace Inventory.Application.Features.InventoryItems.ReleaseReserve
         public async Task<ReleaseReserveResult> Handle(ReleaseReserveCommand command, CancellationToken cancellationToken)
         {
             var items = await repository.GetByOrderIdWithReservationsAsync(command.OrderId, cancellationToken);
-            var isReleased = false;
 
             foreach (var item in items)
-                isReleased |= item.ReleaseReservation(command.OrderId);
-
-            if (!isReleased)
-                return new ReleaseReserveResult(false);
+                if (!item.ReleaseReservation(command.OrderId))
+                    return new ReleaseReserveResult(false);
 
             try
             {

@@ -1,14 +1,13 @@
 namespace Inventory.Application.Features.InventoryItems.ConfirmReservation
 {
-    public record ConfirmReservationCommand(Guid Id, Guid OrderId) : ICommand<ConfirmReservationResult>;
+    public record ConfirmReservationCommand(Guid OrderId) : ICommand<ConfirmReservationResult>;
 
-    public record ConfirmReservationResult(bool IsSuccess);
+    public record ConfirmReservationResult(bool IsSuccess, string? FailureReason = null);
 
     public class ConfirmReservationCommandValidator : AbstractValidator<ConfirmReservationCommand>
     {
         public ConfirmReservationCommandValidator()
         {
-            RuleFor(command => command.Id).NotEmpty();
             RuleFor(command => command.OrderId).NotEmpty();
         }
     }
@@ -17,11 +16,11 @@ namespace Inventory.Application.Features.InventoryItems.ConfirmReservation
     {
         public async Task<ConfirmReservationResult> Handle(ConfirmReservationCommand command, CancellationToken cancellationToken)
         {
-            var item = await repository.GetByIdWithReservationsAsync(command.Id, command.OrderId, cancellationToken)
-                ?? throw new KeyNotFoundException($"Inventory item with id '{command.Id}' was not found.");
+            var items = await repository.GetByOrderIdWithReservationsAsync(command.OrderId, cancellationToken);
 
-            if (!item.ConfirmReservation(command.OrderId))
-                return new ConfirmReservationResult(false);
+            foreach (var item in items)
+                if (!item.ConfirmReservation(command.OrderId))
+                    return new ConfirmReservationResult(false, $"Reservation confirmation failed for order : {command.OrderId}, product : {item.ProductId}");
 
             try
             {
@@ -29,7 +28,7 @@ namespace Inventory.Application.Features.InventoryItems.ConfirmReservation
             }
             catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
             {
-                return new ConfirmReservationResult(false);
+                return new ConfirmReservationResult(false, "Stock changed during confirmation. Please retry.");
             }
 
             return new ConfirmReservationResult(true);

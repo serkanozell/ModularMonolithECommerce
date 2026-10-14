@@ -103,8 +103,40 @@ namespace Ordering.Domain.Entities
         {
             if (string.IsNullOrWhiteSpace(reason))
                 throw new ArgumentException("Cancellation reason cannot be null or empty.", nameof(reason));
+
+            if (OrderStatus == OrderStatus.Cancelled)
+                return;
+
+            if (OrderStatus == OrderStatus.Completed)
+                throw new InvalidOperationException("Cannot cancel a completed order.");
+
             ChangeStatus(OrderStatus.Cancelled);
             AddDomainEvent(new OrderCanceledEvent(Id.Value, reason));
+        }
+
+        public void Confirm()
+        {
+            if (OrderStatus == OrderStatus.Confirmed)
+                return;
+
+            if (OrderStatus != OrderStatus.Pending)
+                throw new InvalidOperationException($"Only pending orders can be confirmed. Current status: {OrderStatus}");
+
+            ChangeStatus(OrderStatus.Confirmed);
+            AddDomainEvent(new OrderConfirmedEvent(Id.Value));
+        }
+
+        public void Complete()
+        {
+            if (OrderStatus == OrderStatus.Completed)
+                return;
+
+
+            if (OrderStatus != OrderStatus.Confirmed)
+                throw new InvalidOperationException($"Only confirmed orders can be completed. Current status: {OrderStatus}.");
+
+            ChangeStatus(OrderStatus.Completed);
+            AddDomainEvent(new OrderCompletedEvent(Id.Value));
         }
 
         private void ChangeStatus(OrderStatus status)
