@@ -18,6 +18,9 @@ namespace Inventory.Application.Features.InventoryItems.ConfirmReservation
         {
             var items = await repository.GetByOrderIdWithReservationsAsync(command.OrderId, cancellationToken);
 
+            if (items.Count == 0)
+                return new ConfirmReservationResult(false, $"No active reservation found for order {command.OrderId}.");
+
             foreach (var item in items)
                 if (!item.ConfirmReservation(command.OrderId))
                     return new ConfirmReservationResult(false, $"Reservation confirmation failed for order : {command.OrderId}, product : {item.ProductId}");

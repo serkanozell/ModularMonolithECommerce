@@ -34,6 +34,8 @@ namespace Ordering.Application.Features.Orders.EventHandlers
             var orderplacedIntegrationEvent = new OrderPlacedIntegrationEvent
             {
                 OrderId = order.Id.Value,
+                CustomerId = order.CustomerId.Value,
+                TotalPrice = order.TotalPrice,
                 OrderItems = order.Items.Select(oi => new OrderItemDto(oi.ProductId.Value, oi.Quantity.Value, oi.Price.Value)).ToList()
             };
 

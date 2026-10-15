@@ -14,5 +14,6 @@ namespace Ordering.Application.Features.Orders.Sagas
         public DateTime? CompletedAtUtc { get; set; }
 
         public Guid? StockTimeoutTokenId { get; set; }
+        public Guid? SagaTimeoutTokenId { get; set; }
     }
 }
