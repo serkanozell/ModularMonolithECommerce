@@ -23,11 +23,13 @@ namespace Ordering.Application.Features.Orders.Sagas
         public Event<OrderConfirmedIntegrationEvent> OrderConfirmedReceived { get; private set; } = null!;
         public Event<StockReservationConfirmedIntegrationEvent> StockReservationConfirmedReceived { get; private set; } = null!;
         public Event<StockReservationConfirmFailedIntegrationEvent> StockReservationConfirmFailedReceived { get; private set; } = null!;
+        public Event<StockReservationReleaseResultIntegrationEvent> StockReservationReleaseResultReceived { get; private set; } = null!;
         public Event<OrderCompletedIntegrationEvent> OrderCompletedReceived { get; private set; } = null!;
         public Event<OrderCanceledIntegrationEvent> OrderCanceledReceived { get; private set; } = null!;
 
         // Fault events (consumer retry'ları tükenince MassTransit Fault<T> yayınlar)
         public Event<Fault<ReserveStockIntegrationEvent>> ReserveStockFaulted { get; private set; } = null!;
+        public Event<Fault<ReleaseReserveIntegrationEvent>> ReleaseReserveFaulted { get; private set; } = null!;
         public Event<Fault<ConfirmOrderIntegrationEvent>> ConfirmOrderFaulted { get; private set; } = null!;
         public Event<Fault<ConfirmStockReservationIntegrationEvent>> ConfirmStockReservationFaulted { get; private set; } = null!;
         public Event<Fault<CompleteOrderIntegrationEvent>> CompleteOrderFaulted { get; private set; } = null!;
@@ -152,6 +154,16 @@ namespace Ordering.Application.Features.Orders.Sagas
                 When(StockReservedReceived)
                     .Publish(context => new ReleaseReserveIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId)),
 
+                When(StockReservationReleaseResultReceived)
+                    .Then(context =>
+                    {
+                        if (!context.Message.IsSuccess)
+                            RecordStockReleaseFailure(context.Saga, context.Message.FailureReason);
+                    }),
+
+                When(ReleaseReserveFaulted)
+                    .Then(context => RecordStockReleaseFailure(context.Saga, FaultReason(context, "Stock reservation release faulted."))),
+
                 FinalizeWithFailure(When(CancelOrderFaulted),
                                     context => FaultReason(context, "Order cancellation failed.")),
 
@@ -174,7 +186,17 @@ namespace Ordering.Application.Features.Orders.Sagas
                 // Sadece başarısız/iptal edilmiş saga'larda release et (başarılı akışta duplicate gelirse dokunma).
                 When(StockReservedReceived)
                     .If(context => context.Saga.FailureReason is not null,
-                        x => x.Publish(context => new ReleaseReserveIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId))));
+                        x => x.Publish(context => new ReleaseReserveIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId))),
+
+                When(StockReservationReleaseResultReceived)
+                    .Then(context =>
+                    {
+                        if (!context.Message.IsSuccess)
+                            RecordStockReleaseFailure(context.Saga, context.Message.FailureReason);
+                    }),
+
+                When(ReleaseReserveFaulted)
+                    .Then(context => RecordStockReleaseFailure(context.Saga, FaultReason(context, "Stock reservation release faulted."))));
 
             // ---------------------------------------------------------------
             // Geç / duplicate event'ler UnhandledEventException fırlatmasın
@@ -233,12 +255,14 @@ namespace Ordering.Application.Features.Orders.Sagas
             Event(() => StockReserveFailedReceived, config => config.CorrelateById(context => context.Message.SagaCorrelationId));
             Event(() => StockReservationConfirmedReceived, config => config.CorrelateById(context => context.Message.SagaCorrelationId));
             Event(() => StockReservationConfirmFailedReceived, config => config.CorrelateById(context => context.Message.SagaCorrelationId));
+            Event(() => StockReservationReleaseResultReceived, config => config.CorrelateById(context => context.Message.SagaCorrelationId));
 
             Event(() => OrderConfirmedReceived, config => config.CorrelateById(context => context.Message.OrderId));
             Event(() => OrderCompletedReceived, config => config.CorrelateById(context => context.Message.OrderId));
             Event(() => OrderCanceledReceived, config => config.CorrelateById(context => context.Message.OrderId));
 
             Event(() => ReserveStockFaulted, config => config.CorrelateById(context => context.Message.Message.SagaCorrelationId));
+            Event(() => ReleaseReserveFaulted, config => config.CorrelateById(context => context.Message.Message.SagaCorrelationId));
             Event(() => ConfirmOrderFaulted, config => config.CorrelateById(context => context.Message.Message.CorrelationId));
             Event(() => ConfirmStockReservationFaulted, config => config.CorrelateById(context => context.Message.Message.SagaCorrelationId));
             Event(() => CompleteOrderFaulted, config => config.CorrelateById(context => context.Message.Message.CorrelationId));
@@ -292,6 +316,18 @@ namespace Ordering.Application.Features.Orders.Sagas
         private static string FaultReason<T>(BehaviorContext<OrderCheckoutSagaState, Fault<T>> context, string fallback) where T : class
         {
             return context.Message.Exceptions?.FirstOrDefault()?.Message ?? fallback;
+        }
+
+        private static void RecordStockReleaseFailure(OrderCheckoutSagaState saga, string? reason)
+        {
+            var failureReason = string.IsNullOrWhiteSpace(reason) ? "Stock reservation release failed." : reason;
+
+            if (saga.FailureReason?.Contains(failureReason, StringComparison.OrdinalIgnoreCase) == true)
+                return;
+
+            saga.FailureReason = string.IsNullOrWhiteSpace(saga.FailureReason)
+                ? failureReason
+                : $"{saga.FailureReason} Stock release failure: {failureReason}";
         }
     }
 }

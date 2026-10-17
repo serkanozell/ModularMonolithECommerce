@@ -10,6 +10,8 @@ public record StockReserveFailedIntegrationEvent(Guid SagaCorrelationId, Guid Or
 
 public record ReleaseReserveIntegrationEvent(Guid SagaCorrelationId, Guid OrderId);
 
+public record StockReservationReleaseResultIntegrationEvent(Guid SagaCorrelationId, Guid OrderId, bool IsSuccess, string? FailureReason = null);
+
 public record ConfirmStockReservationIntegrationEvent(Guid SagaCorrelationId, Guid OrderId);
 
 public record StockReservationConfirmedIntegrationEvent(Guid SagaCorrelationId, Guid OrderId);
