@@ -8,8 +8,6 @@
 
         public static OrderId Of(Guid value)
         {
-            ArgumentNullException.ThrowIfNull(value);
-
             if (value == Guid.Empty)
                 throw new Exception("OrderId cannot be empty.");
 

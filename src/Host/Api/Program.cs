@@ -2,9 +2,9 @@ using BuildingBlocks.Messaging.Extensions;
 using BuildingBlocks.Shared.Caching;
 using BuildingBlocks.Shared.Exceptions.Handler;
 using BuildingBlocks.Shared.Services;
+using MassTransit;
 using Notification.Api;
 using Notification.Application;
-using MassTransit;
 using Ordering.Application.Features.Orders.Sagas;
 using Ordering.Infrastructure.Persistence;
 using Serilog;
@@ -21,12 +21,13 @@ var basketAssembly = BasketApplicationAssembly.Instance;
 var orderingAssembly = OrderingApplicationAssembly.Instance;
 var notificationAssembly = NotificationApplicationAssembly.Instance;
 var inventoryAssembly = InventoryApplicationAssembly.Instance;
+var paymentAssembly = PaymentApplicationAssembly.Instance;
 
 
 // extensiona taşınıp birbiri ile ilişkili şeyler methodlara bölünecek
 
-builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly, inventoryAssembly);
-builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly, inventoryAssembly);
+builder.Services.AddCarterWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly, inventoryAssembly, paymentAssembly);
+builder.Services.AddMediatRWithAssemblies(catalogAssembly, basketAssembly, orderingAssembly, notificationAssembly, inventoryAssembly, paymentAssembly);
 
 builder.Services.AddOptions<RedisOptions>()
                 .Bind(builder.Configuration.GetSection("RedisOptions"))
@@ -57,7 +58,8 @@ builder.Services.AddMessaging(
     basketAssembly,
     orderingAssembly,
     notificationAssembly,
-    inventoryAssembly);
+    inventoryAssembly,
+    paymentAssembly);
 
 builder.Services.AddKeycloakWebApiAuthentication(builder.Configuration, "Keycloak");
 
@@ -71,7 +73,8 @@ builder.Services.AddCatalogModule(builder.Configuration)
                 .AddBasketModule(builder.Configuration)
                 .AddOrderingModule(builder.Configuration)
                 .AddNotificationModule(builder.Configuration)
-                .AddInventoryModule(builder.Configuration);
+                .AddInventoryModule(builder.Configuration)
+                .AddPaymentModule(builder.Configuration);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
@@ -103,6 +106,7 @@ app.UseCatalogModule()
    .UseBasketModule()
    .UseOrderingModule()
    .UseNotificationModule()
-   .UseInventoryModule();
+   .UseInventoryModule()
+   .UsePaymentModule();
 
 app.Run();

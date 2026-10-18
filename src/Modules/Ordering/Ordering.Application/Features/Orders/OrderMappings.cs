@@ -30,7 +30,7 @@ namespace Ordering.Application.Features.Orders
                 address.State,
                 address.ZipCode);
 
-        public static PaymentDto ToDto(this Payment payment) =>
+        public static PaymentDto ToDto(this Domain.ValueObjects.Payment payment) =>
             new(payment.CardName ?? string.Empty,
                 payment.CardNumber,
                 payment.Expiration,
@@ -46,8 +46,8 @@ namespace Ordering.Application.Features.Orders
                        dto.State,
                        dto.ZipCode);
 
-        public static Payment ToValueObject(this PaymentDto dto) =>
-            Payment.Of(dto.CardName,
+        public static Domain.ValueObjects.Payment ToValueObject(this PaymentDto dto) =>
+            Domain.ValueObjects.Payment.Of(dto.CardName,
                        dto.CardNumber,
                        dto.Expiration,
                        dto.Cvv,

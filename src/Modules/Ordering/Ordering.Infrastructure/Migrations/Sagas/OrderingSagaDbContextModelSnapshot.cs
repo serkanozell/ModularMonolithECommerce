@@ -52,6 +52,10 @@ namespace Ordering.Infrastructure.Migrations.Sagas
                         .HasColumnType("uuid")
                         .HasColumnName("order_id");
 
+                    b.Property<Guid?>("SagaTimeoutTokenId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("saga_timeout_token_id");
+
                     b.Property<DateTime>("StartedAtUtc")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("started_at_utc");

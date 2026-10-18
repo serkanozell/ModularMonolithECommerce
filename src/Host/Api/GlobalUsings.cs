@@ -8,3 +8,5 @@ global using Inventory.Api;
 global using Inventory.Application;
 global using Ordering.Api;
 global using Ordering.Application;
+global using Payment.Api;
+global using Payment.Application;
