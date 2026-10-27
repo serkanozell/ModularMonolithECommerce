@@ -24,6 +24,7 @@ namespace Ordering.Application.Features.Orders.Sagas
         public Event<StockReserveFailedIntegrationEvent> StockReserveFailedReceived { get; private set; } = null!;
         public Event<PaymentSucceededIntegrationEvent> PaymentSucceededReceived { get; private set; } = null!;
         public Event<PaymentFailedIntegrationEvent> PaymentFailedReceived { get; private set; } = null!;
+        public Event<PaymentRefundResultIntegrationEvent> PaymentRefundResultReceived { get; private set; } = null!;
         public Event<OrderConfirmedIntegrationEvent> OrderConfirmedReceived { get; private set; } = null!;
         public Event<StockReservationConfirmedIntegrationEvent> StockReservationConfirmedReceived { get; private set; } = null!;
         public Event<StockReservationConfirmFailedIntegrationEvent> StockReservationConfirmFailedReceived { get; private set; } = null!;
@@ -35,6 +36,7 @@ namespace Ordering.Application.Features.Orders.Sagas
         public Event<Fault<ReserveStockIntegrationEvent>> ReserveStockFaulted { get; private set; } = null!;
         public Event<Fault<ReleaseReserveIntegrationEvent>> ReleaseReserveFaulted { get; private set; } = null!;
         public Event<Fault<ProcessPaymentIntegrationEvent>> ProcessPaymentFaulted { get; private set; } = null!;
+        public Event<Fault<RefundPaymentIntegrationEvent>> RefundPaymentFaulted { get; private set; } = null!;
         public Event<Fault<ConfirmOrderIntegrationEvent>> ConfirmOrderFaulted { get; private set; } = null!;
         public Event<Fault<ConfirmStockReservationIntegrationEvent>> ConfirmStockReservationFaulted { get; private set; } = null!;
         public Event<Fault<CompleteOrderIntegrationEvent>> CompleteOrderFaulted { get; private set; } = null!;
@@ -191,11 +193,11 @@ namespace Ordering.Application.Features.Orders.Sagas
                     .Then(context =>
                     {
                         if (!context.Message.IsSuccess)
-                            RecordStockReleaseFailure(context.Saga, context.Message.FailureReason);
+                            RecordFailure(context.Saga, "Stock reservation release failed", context.Message.FailureReason);
                     }),
 
                 When(ReleaseReserveFaulted)
-                    .Then(context => RecordStockReleaseFailure(context.Saga, FaultReason(context, "Stock reservation release faulted."))),
+                    .Then(context => RecordFailure(context.Saga, FaultReason(context, "Stock reservation release faulted."), context.Saga.FailureReason)),
 
                 FinalizeWithFailure(When(CancelOrderFaulted),
                                     context => FaultReason(context, "Order cancellation failed.")),
@@ -225,11 +227,11 @@ namespace Ordering.Application.Features.Orders.Sagas
                     .Then(context =>
                     {
                         if (!context.Message.IsSuccess)
-                            RecordStockReleaseFailure(context.Saga, context.Message.FailureReason);
+                            RecordFailure(context.Saga, "Stock reservation release failed", context.Message.FailureReason);
                     }),
 
                 When(ReleaseReserveFaulted)
-                    .Then(context => RecordStockReleaseFailure(context.Saga, FaultReason(context, "Stock reservation release faulted."))));
+                    .Then(context => RecordFailure(context.Saga, FaultReason(context, "Stock reservation release faulted."), context.Saga.FailureReason)));
 
             // ---------------------------------------------------------------
             // Geç / duplicate event'ler UnhandledEventException fırlatmasın
@@ -301,6 +303,7 @@ namespace Ordering.Application.Features.Orders.Sagas
 
             Event(() => PaymentSucceededReceived, config => config.CorrelateById(context => context.Message.SagaCorrelationId));
             Event(() => PaymentFailedReceived, config => config.CorrelateById(context => context.Message.SagaCorrelationId));
+            Event(() => PaymentRefundResultReceived, c => c.CorrelateById(x => x.Message.SagaCorrelationId));
 
             Event(() => OrderConfirmedReceived, config => config.CorrelateById(context => context.Message.OrderId));
             Event(() => OrderCompletedReceived, config => config.CorrelateById(context => context.Message.OrderId));
@@ -313,6 +316,8 @@ namespace Ordering.Application.Features.Orders.Sagas
             Event(() => ConfirmStockReservationFaulted, config => config.CorrelateById(context => context.Message.Message.SagaCorrelationId));
             Event(() => CompleteOrderFaulted, config => config.CorrelateById(context => context.Message.Message.CorrelationId));
             Event(() => CancelOrderFaulted, config => config.CorrelateById(context => context.Message.Message.CorrelationId));
+            Event(() => ProcessPaymentFaulted, c => c.CorrelateById(x => x.Message.Message.SagaCorrelationId));
+            Event(() => RefundPaymentFaulted, c => c.CorrelateById(x => x.Message.Message.SagaCorrelationId));
         }
 
         private void ConfigureSchedules()
@@ -343,6 +348,9 @@ namespace Ordering.Application.Features.Orders.Sagas
             if (releaseStock)
                 binder = binder.Publish(context => new ReleaseReserveIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId));
 
+            if (refundPayment)
+                binder = binder.Publish(context => new RefundPaymentIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId));
+
             return binder
                 .Unschedule(StockReservationTimeout)
                 .Publish(context => new CancelOrderIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId, context.Saga.FailureReason ?? "Order checkout failed."))
@@ -365,16 +373,24 @@ namespace Ordering.Application.Features.Orders.Sagas
             return context.Message.Exceptions?.FirstOrDefault()?.Message ?? fallback;
         }
 
-        private static void RecordStockReleaseFailure(OrderCheckoutSagaState saga, string? reason)
+        private static void RecordFailure(OrderCheckoutSagaState saga, string prefix, string? reason)
         {
-            var failureReason = string.IsNullOrWhiteSpace(reason) ? "Stock reservation release failed." : reason;
+            var failure = string.IsNullOrWhiteSpace(reason) ? $"{prefix}." : reason;
+            if (saga.FailureReason?.Contains(failure, StringComparison.OrdinalIgnoreCase) == true) return;
 
-            if (saga.FailureReason?.Contains(failureReason, StringComparison.OrdinalIgnoreCase) == true)
-                return;
-
-            saga.FailureReason = string.IsNullOrWhiteSpace(saga.FailureReason)
-                ? failureReason
-                : $"{saga.FailureReason} Stock release failure: {failureReason}";
+            saga.FailureReason = string.IsNullOrWhiteSpace(saga.FailureReason) ? failure : $"{saga.FailureReason} {prefix}: {failure}";
         }
+
+        //private static void RecordStockReleaseFailure(OrderCheckoutSagaState saga, string? reason)
+        //{
+        //    var failureReason = string.IsNullOrWhiteSpace(reason) ? "Stock reservation release failed." : reason;
+
+        //    if (saga.FailureReason?.Contains(failureReason, StringComparison.OrdinalIgnoreCase) == true)
+        //        return;
+
+        //    saga.FailureReason = string.IsNullOrWhiteSpace(saga.FailureReason)
+        //        ? failureReason
+        //        : $"{saga.FailureReason} Stock release failure: {failureReason}";
+        //}
     }
 }
