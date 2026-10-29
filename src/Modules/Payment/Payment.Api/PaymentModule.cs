@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Payment.Domain.Repositories;
 using Payment.Infrastructure.Persistance;
 using Payment.Infrastructure.Repositories;
@@ -21,8 +22,8 @@ namespace Payment.Api
             services.AddScoped<IPaymentTransactionRepository, PaymentTransactionRepository>();
             //services.AddScoped<IPaymentGateway, FakePaymentGateway>();
 
-            services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-            services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISaveChangesInterceptor, AuditableEntityInterceptor>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>());
 
             services.AddDbContext<PaymentDbContext>((sp, options) =>
             {

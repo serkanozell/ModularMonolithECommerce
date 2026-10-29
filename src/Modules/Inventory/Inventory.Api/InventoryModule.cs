@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Data.Common;
 
 namespace Inventory.Api
@@ -17,8 +18,9 @@ namespace Inventory.Api
         public static IServiceCollection AddInventoryModule(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddScoped<IInventoryItemRepository, InventoryItemRepository>();
-            services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-            services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISaveChangesInterceptor, AuditableEntityInterceptor>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>());
 
             services.AddDbContext<InventoryDbContext>((serviceProvider, options) =>
             {

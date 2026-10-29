@@ -100,6 +100,8 @@ namespace Ordering.Application.Features.Orders.Sagas
             //    Başarısız ödemede sadece stok serbest bırakılır (para alınmadı).
             //    Fault / timeout durumunda ödeme belirsiz olduğu için iade de istenir
             //    (Payment tarafında iade idempotent: kayıt yoksa / Succeeded değilse no-op).
+            //    İade, ödeme kaydından önce işlenirse geç gelen PaymentSucceeded
+            //    AwaitingOrderCancellation / Final state'inde tekrar iade tetikler.
             // ---------------------------------------------------------------
             During(AwaitingPayment,
                 When(PaymentSucceededReceived)
@@ -161,8 +163,10 @@ namespace Ordering.Application.Features.Orders.Sagas
 
             // ---------------------------------------------------------------
             // 5) Sipariş tamamlama
-            //    Stok bu noktada kesinleşmiş durumda, bu yüzden iptal/release yok.
-            //    Hata durumunda saga FailureReason ile kapanır, manuel müdahale gerekir.
+            //    Stok bu noktada kesinleşmiş durumda, bu yüzden stok release yok
+            //    (manuel restock gerekir). Ödeme ise alınmış durumda olduğu için
+            //    sipariş iptal edilirse iade yayınlanır.
+            //    Complete hatası / timeout'ta saga FailureReason ile kapanır, manuel müdahale gerekir.
             // ---------------------------------------------------------------
             During(AwaitingOrderCompletion,
                 When(OrderCompletedReceived)
@@ -174,9 +178,10 @@ namespace Ordering.Application.Features.Orders.Sagas
                 FinalizeWithFailure(When(SagaTimeout.Received),
                                     _ => "Saga timeout while awaiting order completion."),
 
-                // Stok zaten düşülmüş: yeniden stoklama iş kuralı netleşene kadar sadece işaretle.
-                FinalizeWithFailure(When(OrderCanceledReceived),
-                                    context => $"Order canceled after stock confirmation (manual restock required): {context.Message.Reason}"));
+                When(OrderCanceledReceived)
+                    .Then(context => context.Saga.FailureReason ??= $"Order canceled after stock confirmation (manual restock required): {context.Message.Reason}")
+                    .Publish(context => new RefundPaymentIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId))
+                    .Finalize());
 
             // ---------------------------------------------------------------
             // 6) İptal bekleme
@@ -189,15 +194,12 @@ namespace Ordering.Application.Features.Orders.Sagas
                 When(StockReservedReceived)
                     .Publish(context => new ReleaseReserveIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId)),
 
-                When(StockReservationReleaseResultReceived)
-                    .Then(context =>
-                    {
-                        if (!context.Message.IsSuccess)
-                            RecordFailure(context.Saga, "Stock reservation release failed", context.Message.FailureReason);
-                    }),
-
-                When(ReleaseReserveFaulted)
-                    .Then(context => RecordFailure(context.Saga, FaultReason(context, "Stock reservation release faulted."), context.Saga.FailureReason)),
+                // Telafi sürerken ödeme sonradan başarılı olduysa iade et.
+                LatePaymentSucceeded(),
+                OnPaymentRefundResult(),
+                OnRefundPaymentFaulted(),
+                OnStockReleaseResult(),
+                OnReleaseReserveFaulted(),
 
                 FinalizeWithFailure(When(CancelOrderFaulted),
                                     context => FaultReason(context, "Order cancellation failed.")),
@@ -208,10 +210,22 @@ namespace Ordering.Application.Features.Orders.Sagas
             // ---------------------------------------------------------------
             // Kullanıcı kaynaklı iptal (saga sürerken API'den iptal edilirse)
             // ---------------------------------------------------------------
-            During(new[] { AwaitingStockReservations, AwaitingOrderConfirmation, AwaitingStockConfirmation },
+
+            // Henüz ödeme istenmedi: sadece stok serbest bırakılır.
+            During(AwaitingStockReservations,
                 When(OrderCanceledReceived)
                     .Then(context => context.Saga.FailureReason ??= $"Order canceled: {context.Message.Reason}")
                     .Publish(context => new ReleaseReserveIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId))
+                    .Finalize());
+
+            // Ödeme istenmiş / alınmış olabilir: stok + iade (iade idempotent).
+            // AwaitingPayment'ta ödeme uçuşta olabilir; iade ödemeden önce işlenirse
+            // Final'deki geç PaymentSucceeded dalı tekrar iade tetikler.
+            During(new[] { AwaitingPayment, AwaitingOrderConfirmation, AwaitingStockConfirmation },
+                When(OrderCanceledReceived)
+                    .Then(context => context.Saga.FailureReason ??= $"Order canceled: {context.Message.Reason}")
+                    .Publish(context => new ReleaseReserveIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId))
+                    .Publish(context => new RefundPaymentIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId))
                     .Finalize());
 
             // ---------------------------------------------------------------
@@ -223,15 +237,12 @@ namespace Ordering.Application.Features.Orders.Sagas
                     .If(context => context.Saga.FailureReason is not null,
                         x => x.Publish(context => new ReleaseReserveIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId))),
 
-                When(StockReservationReleaseResultReceived)
-                    .Then(context =>
-                    {
-                        if (!context.Message.IsSuccess)
-                            RecordFailure(context.Saga, "Stock reservation release failed", context.Message.FailureReason);
-                    }),
-
-                When(ReleaseReserveFaulted)
-                    .Then(context => RecordFailure(context.Saga, FaultReason(context, "Stock reservation release faulted."), context.Saga.FailureReason)));
+                // Sadece başarısız/iptal edilmiş saga'larda iade et (başarılı akışta duplicate gelirse dokunma).
+                LatePaymentSucceeded(),
+                OnPaymentRefundResult(),
+                OnRefundPaymentFaulted(),
+                OnStockReleaseResult(),
+                OnReleaseReserveFaulted());
 
             // ---------------------------------------------------------------
             // Geç / duplicate event'ler UnhandledEventException fırlatmasın
@@ -239,7 +250,7 @@ namespace Ordering.Application.Features.Orders.Sagas
             var everyState = new[] { AwaitingStockReservations, AwaitingPayment, AwaitingOrderConfirmation, AwaitingStockConfirmation, AwaitingOrderCompletion, AwaitingOrderCancellation, Final };
 
             During(everyState,
-                            Ignore(OrderPlacedReceived));
+                Ignore(OrderPlacedReceived));
 
             During(new[] { AwaitingPayment, AwaitingOrderConfirmation, AwaitingStockConfirmation, AwaitingOrderCompletion },
                 Ignore(StockReservedReceived));
@@ -250,13 +261,19 @@ namespace Ordering.Application.Features.Orders.Sagas
                 Ignore(ReserveStockFaulted));
 
             // Ödeme sonucu: AwaitingPayment dışındaki state'lerde duplicate / geç gelen mesajlar.
-            // PaymentSucceeded; AwaitingOrderCancellation ve Final'de ayrıca ele alındığı için burada yok.
+            // PaymentSucceeded; AwaitingOrderCancellation ve Final'de LatePaymentSucceeded ile ele alınıyor.
             During(new[] { AwaitingStockReservations, AwaitingOrderConfirmation, AwaitingStockConfirmation, AwaitingOrderCompletion },
                 Ignore(PaymentSucceededReceived));
 
             During(new[] { AwaitingStockReservations, AwaitingOrderConfirmation, AwaitingStockConfirmation, AwaitingOrderCompletion, AwaitingOrderCancellation, Final },
                 Ignore(PaymentFailedReceived),
                 Ignore(ProcessPaymentFaulted));
+
+            // İade sonucu / fault: AwaitingOrderCancellation ve Final'de işleniyor,
+            // diğer state'lerde (ör. kullanıcı iptalinden sonra erken gelen duplicate) yok sayılır.
+            During(new[] { AwaitingStockReservations, AwaitingPayment, AwaitingOrderConfirmation, AwaitingStockConfirmation, AwaitingOrderCompletion },
+                Ignore(PaymentRefundResultReceived),
+                Ignore(RefundPaymentFaulted));
 
             During(new[] { AwaitingPayment, AwaitingStockConfirmation, AwaitingOrderCompletion, AwaitingOrderCancellation, Final },
                 Ignore(OrderConfirmedReceived),
@@ -284,7 +301,7 @@ namespace Ordering.Application.Features.Orders.Sagas
                 .Unschedule(StockReservationTimeout)
                 .Unschedule(SagaTimeout));
 
-            // SetCompletedWhenFinalized(); // Açılırsa Final instance'ları silinir, geç gelen event'ler (ör. StockReserved) artık yakalanamaz.
+            // SetCompletedWhenFinalized(); // Açılırsa Final instance'ları silinir, geç gelen event'ler (ör. StockReserved, PaymentSucceeded) artık yakalanamaz.
         }
 
         private void ConfigureEvents()
@@ -303,7 +320,7 @@ namespace Ordering.Application.Features.Orders.Sagas
 
             Event(() => PaymentSucceededReceived, config => config.CorrelateById(context => context.Message.SagaCorrelationId));
             Event(() => PaymentFailedReceived, config => config.CorrelateById(context => context.Message.SagaCorrelationId));
-            Event(() => PaymentRefundResultReceived, c => c.CorrelateById(x => x.Message.SagaCorrelationId));
+            Event(() => PaymentRefundResultReceived, config => config.CorrelateById(context => context.Message.SagaCorrelationId));
 
             Event(() => OrderConfirmedReceived, config => config.CorrelateById(context => context.Message.OrderId));
             Event(() => OrderCompletedReceived, config => config.CorrelateById(context => context.Message.OrderId));
@@ -312,12 +329,11 @@ namespace Ordering.Application.Features.Orders.Sagas
             Event(() => ReserveStockFaulted, config => config.CorrelateById(context => context.Message.Message.SagaCorrelationId));
             Event(() => ReleaseReserveFaulted, config => config.CorrelateById(context => context.Message.Message.SagaCorrelationId));
             Event(() => ProcessPaymentFaulted, config => config.CorrelateById(context => context.Message.Message.SagaCorrelationId));
+            Event(() => RefundPaymentFaulted, config => config.CorrelateById(context => context.Message.Message.SagaCorrelationId));
             Event(() => ConfirmOrderFaulted, config => config.CorrelateById(context => context.Message.Message.CorrelationId));
             Event(() => ConfirmStockReservationFaulted, config => config.CorrelateById(context => context.Message.Message.SagaCorrelationId));
             Event(() => CompleteOrderFaulted, config => config.CorrelateById(context => context.Message.Message.CorrelationId));
             Event(() => CancelOrderFaulted, config => config.CorrelateById(context => context.Message.Message.CorrelationId));
-            Event(() => ProcessPaymentFaulted, c => c.CorrelateById(x => x.Message.Message.SagaCorrelationId));
-            Event(() => RefundPaymentFaulted, c => c.CorrelateById(x => x.Message.Message.SagaCorrelationId));
         }
 
         private void ConfigureSchedules()
@@ -335,8 +351,46 @@ namespace Ordering.Application.Features.Orders.Sagas
             });
         }
 
+        // ---------------------------------------------------------------
+        // AwaitingOrderCancellation ve Final için ortak "geç gelen event" dalları
+        // ---------------------------------------------------------------
+
         /// <summary>
-        /// FailureReason'ı yazar, (opsiyonel) rezervasyonu serbest bırakır, siparişi iptal ettirir ve iptal bekleme state'ine geçer.
+        /// Saga başarısız/iptal olduktan sonra ödeme başarılı olduysa (iade, ödeme kaydından önce işlendiyse
+        /// no-op olduğu için) parayı tekrar iade ettirir. Başarılı akışta FailureReason null olduğundan dokunmaz.
+        /// </summary>
+        private EventActivityBinder<OrderCheckoutSagaState, PaymentSucceededIntegrationEvent> LatePaymentSucceeded() =>
+            When(PaymentSucceededReceived)
+                .If(context => context.Saga.FailureReason is not null,
+                    x => x.Publish(context => new RefundPaymentIntegrationEvent(context.Saga.CorrelationId, context.Saga.OrderId)));
+
+        private EventActivityBinder<OrderCheckoutSagaState, PaymentRefundResultIntegrationEvent> OnPaymentRefundResult() =>
+            When(PaymentRefundResultReceived)
+                .Then(context =>
+                {
+                    if (!context.Message.IsSuccess)
+                        RecordFailure(context.Saga, "Payment refund failed", context.Message.FailureReason);
+                });
+
+        private EventActivityBinder<OrderCheckoutSagaState, Fault<RefundPaymentIntegrationEvent>> OnRefundPaymentFaulted() =>
+            When(RefundPaymentFaulted)
+                .Then(context => RecordFailure(context.Saga, "Payment refund faulted", FaultReason(context, "Payment refund faulted.")));
+
+        private EventActivityBinder<OrderCheckoutSagaState, StockReservationReleaseResultIntegrationEvent> OnStockReleaseResult() =>
+            When(StockReservationReleaseResultReceived)
+                .Then(context =>
+                {
+                    if (!context.Message.IsSuccess)
+                        RecordFailure(context.Saga, "Stock reservation release failed", context.Message.FailureReason);
+                });
+
+        private EventActivityBinder<OrderCheckoutSagaState, Fault<ReleaseReserveIntegrationEvent>> OnReleaseReserveFaulted() =>
+            When(ReleaseReserveFaulted)
+                .Then(context => RecordFailure(context.Saga, "Stock reservation release faulted", FaultReason(context, "Stock reservation release faulted.")));
+
+        /// <summary>
+        /// FailureReason'ı yazar, (opsiyonel) rezervasyonu serbest bırakır, (opsiyonel) ödemeyi iade ettirir,
+        /// siparişi iptal ettirir ve iptal bekleme state'ine geçer.
         /// </summary>
         private EventActivityBinder<OrderCheckoutSagaState, T> Compensate<T>(EventActivityBinder<OrderCheckoutSagaState, T> binder,
                                                                              Func<BehaviorContext<OrderCheckoutSagaState, T>, string> reason,
@@ -378,19 +432,7 @@ namespace Ordering.Application.Features.Orders.Sagas
             var failure = string.IsNullOrWhiteSpace(reason) ? $"{prefix}." : reason;
             if (saga.FailureReason?.Contains(failure, StringComparison.OrdinalIgnoreCase) == true) return;
 
-            saga.FailureReason = string.IsNullOrWhiteSpace(saga.FailureReason) ? failure : $"{saga.FailureReason} {prefix}: {failure}";
+            saga.FailureReason = string.IsNullOrWhiteSpace(saga.FailureReason) ? $"{prefix}: {failure}" : $"{saga.FailureReason} {prefix}: {failure}";
         }
-
-        //private static void RecordStockReleaseFailure(OrderCheckoutSagaState saga, string? reason)
-        //{
-        //    var failureReason = string.IsNullOrWhiteSpace(reason) ? "Stock reservation release failed." : reason;
-
-        //    if (saga.FailureReason?.Contains(failureReason, StringComparison.OrdinalIgnoreCase) == true)
-        //        return;
-
-        //    saga.FailureReason = string.IsNullOrWhiteSpace(saga.FailureReason)
-        //        ? failureReason
-        //        : $"{saga.FailureReason} Stock release failure: {failureReason}";
-        //}
     }
 }

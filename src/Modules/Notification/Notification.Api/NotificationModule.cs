@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Notification.Application.Abstractions;
 using Notification.Application.Options;
 using Notification.Domain.Repositories;
@@ -38,8 +39,8 @@ namespace Notification.Api
             services.AddScoped<IEmailSender, SmtpEmailSender>();
             services.AddScoped<ISmsSender, FakeSmsSender>();
 
-            services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-            services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISaveChangesInterceptor, AuditableEntityInterceptor>());
+            services.TryAddEnumerable(ServiceDescriptor.Scoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>());
 
             services.AddDbContext<NotificationDbContext>((sp, options) =>
             {
